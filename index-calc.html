@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Montserrat:wght@100;200;300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style-calc.css">
+    <title>Document</title>
+</head>
+
+<body>
+   <video autoplay muted loop id="myVideo"> 
+   <source src="./assets/Video.mp4" type="video/mp4">  
+   </video>
+    <main class="main">
+        <!-- Input -->
+      
+            <div class="container">
+                <input 
+                class="container__input" 
+                id="input"
+                type="text" 
+                placeholder="Enter text..."
+                autofocus
+                >
+
+        
+        </div>
+        <!-- Controls -->
+        <div class="container">
+            <div class="container__controls">
+
+                <input type="image" class="heart__controls" id="heart" src="./assets/Heart.png"/>
+                
+                <label class="container__Label">Robinson
+                    <input type="checkbox" id="robinson" checked>
+                    <span class="checkmark"></span>
+                </label>
+
+                <!-- <label class="container__Label">Another place
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmark"></span>
+                </label> -->
+            </div>
+        </div>
+        <!-- Output -->
+        <div class="container">
+            <div class="output_container">
+                <div class="container__out" id="output">
+    
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="index-calc.js"></script>
+
+</body>
+
+</html>
