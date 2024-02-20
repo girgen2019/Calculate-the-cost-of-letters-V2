@@ -143,7 +143,7 @@ img:hover{
 @media screen and (max-width: 964px) {
   #myVideo {
     position: fixed;
-    right: -1rem;
+    right: 0;
     top: -30rem;
   }
   .container {
@@ -153,7 +153,7 @@ img:hover{
 @media screen and (max-width: 660px) {
   #myVideo {
     position: fixed;
-    right: -16rem;
+    right: 0;
     top: -26rem;
   }
 
