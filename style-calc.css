@@ -165,6 +165,9 @@ img:hover{
   html{
     overflow: hidden;
   }
+  .main {
+    padding-top: 2rem;
+  }
   .container__controls {
     margin-top: 1rem;
     padding: 5px 5px;
@@ -179,10 +182,16 @@ img:hover{
   .output_container{
     height: 22rem;
   }
+  .api_container{
+    top: 0.3rem;
+  }
 }
 @media screen and (max-width: 390px) {
   html{
     overflow: hidden;
+  }
+  .main {
+    padding-top: 2rem;
   }
   .container__controls {
     margin-top: 0.8rem;
@@ -198,4 +207,8 @@ img:hover{
   .output_container{
     height: 22rem;
   }
+  .api_container{
+    top: 0.3rem;
+  }
+
 }
