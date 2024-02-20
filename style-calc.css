@@ -162,6 +162,14 @@ img:hover{
   }
 }
 @media screen and (max-width: 500px) {
+  html{
+    overflow: hidden;
+  }
+  .container__controls {
+    margin-top: 1rem;
+    padding: 5px 5px;
+    margin-bottom: 1rem;
+  }
   .container {
     width: 95%;
   }
@@ -171,6 +179,14 @@ img:hover{
   }
 }
 @media screen and (max-width: 390px) {
+  html{
+    overflow: hidden;
+  }
+  .container__controls {
+    margin-top: 0.8rem;
+    padding: 5px 5px;
+    margin-bottom: 0.5rem;
+  }
   .container {
     width: 97%;
   }
