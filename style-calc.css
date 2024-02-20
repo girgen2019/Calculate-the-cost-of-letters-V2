@@ -177,7 +177,7 @@ img:hover{
     font-size: 1.7rem;
   }
   .output_container{
-    height: 25rem;
+    height: 22rem;
   }
 }
 @media screen and (max-width: 390px) {
@@ -196,6 +196,6 @@ img:hover{
     font-size: 1.5rem;
   }
   .output_container{
-    height: 25rem;
+    height: 22rem;
   }
 }
