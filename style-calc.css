@@ -186,10 +186,8 @@ img:hover{
     top: 0.3rem;
   }
 }
-@media screen and (max-width: 390px) {
-  html{
-    overflow: hidden;
-  }
+@media screen and (max-width: 399px) {
+
   .main {
     padding-top: 2rem;
   }
@@ -202,7 +200,7 @@ img:hover{
     width: 97%;
   }
   .container__out{
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
   .output_container{
     height: 22.5rem;
