@@ -161,7 +161,7 @@ img:hover{
     width: 90%;
   }
 }
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 508px) {
   html{
     overflow: hidden;
   }
@@ -182,10 +182,24 @@ img:hover{
   .output_container{
     height: 22.5rem;
   }
+  .container__Label{
+    margin-right: 2rem;
+   /* font-size: 0.7rem; */
+  }
   .api_container{
     top: 0.3rem;
   }
 }
+@media screen and (max-width: 471px) {
+  .container__controls{
+    justify-content:space-between;
+  }
+  .container__Label{
+    margin-right: 1rem;
+   font-size: 0.7rem;
+  }
+}
+
 @media screen and (max-width: 399px) {
 
   .main {
@@ -208,6 +222,12 @@ img:hover{
   .output_container{
     height: 22.5rem;
   }
+  .container__controls{
+    justify-content:start;
+  }
+  .container__Label{
+    font-size: 0.7rem;
+   }
   .api_container{
     top: 0.3rem;
   }
