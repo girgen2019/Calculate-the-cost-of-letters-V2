@@ -191,6 +191,9 @@ img:hover{
   .main {
     padding-top: 2rem;
   }
+  .container {
+    opacity: 0.89;
+  }
   .container__controls {
     margin-top: 0.8rem;
     padding: 5px 5px;
