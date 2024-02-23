@@ -20,6 +20,13 @@ totalSumUSD_YESPyro.classList.add('sumUSD');
 totalSumUSD_YESPyroBolt.classList.add('newClass');
 let heartClick = document.getElementById('heart');
 const heartCharCode = String.fromCharCode(10084);
+let doublePyro = document.getElementById("double")
+
+
+
+
+
+console.log(doublePyro.checked);
 
 function getResult(
   checkedString,
@@ -28,6 +35,17 @@ function getResult(
   prepareResultsNoBYN,
   prepareResultsYesBYN
 ) {
+
+  doublePyro.addEventListener("click", () => {
+    doublePyro.setAttribute("checked", true)
+    if(doublePyro.checked){
+      console.log(prepareResultsNoUSD);
+      prepareResultsNoUSD += 14
+    }
+    console.log(doublePyro.checked);
+  })
+
+  
   outputSimpleString.textContent = checkedString;
   lengthOutputStringBolt.textContent =
     checkedString.length > 1

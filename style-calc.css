@@ -40,16 +40,16 @@ html {
   font-family: var(--primary-font);
   font-size: var(--text-size);
 }
-.main::after{
-  content: "";
-  background:url('./assets/Bg.jpg');
+.main::after {
+  content: '';
+  background: url('./assets/Bg.jpg');
   opacity: 0.8;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
   position: absolute;
-  z-index: -1;   
+  z-index: -1;
 }
 
 .container {
@@ -82,7 +82,7 @@ html {
   margin-bottom: 2rem;
 }
 
-.heart__controls{
+.heart__controls {
   margin: 10px 10px;
   margin-right: 2rem;
   cursor: pointer;
@@ -91,20 +91,19 @@ html {
   transition: transform 0.3s ease;
 }
 
-img{
+img {
   width: 50px;
   height: 50px;
   transition: transform 0.3s ease;
 }
 
-img:hover{
+img:hover {
   transform: scale(1.2);
 }
 
 .container__Label {
   margin-right: 3rem;
   cursor: pointer;
-
 }
 
 .container__out {
@@ -123,18 +122,18 @@ img:hover{
   word-wrap: break-word;
 }
 
-.newClass{
+.newClass {
   color: red;
 }
 
-.sumUSD{
-  color:var(--main-text-color)
+.sumUSD {
+  color: var(--main-text-color);
 }
-.hidden{
-  display:none;
+.hidden {
+  display: none;
 }
 
-.api_container{
+.api_container {
   position: fixed;
   top: 1rem;
   right: 2rem;
@@ -162,7 +161,7 @@ img:hover{
   }
 }
 @media screen and (max-width: 508px) {
-  html{
+  html {
     overflow: hidden;
   }
   .main {
@@ -176,32 +175,36 @@ img:hover{
   .container {
     width: 95%;
   }
-  .container__out{
+  .container__out {
     font-size: 1.6rem;
   }
-  .output_container{
+  .output_container {
     height: 22.5rem;
   }
-  .container__Label{
+  .container__Label {
     margin-right: 2rem;
-   /* font-size: 0.7rem; */
+    /* font-size: 0.7rem; */
   }
-  .api_container{
+  .api_container {
     top: 0.3rem;
   }
 }
 @media screen and (max-width: 471px) {
-  .container__controls{
-    justify-content:space-between;
+  #myVideo {
+    position: fixed;
+    right: 0;
+    top: -26rem;
   }
-  .container__Label{
+  .container__controls {
+    justify-content: space-between;
+  }
+  .container__Label {
     margin-right: 1rem;
-   font-size: 0.7rem;
+    font-size: 0.7rem;
   }
 }
 
 @media screen and (max-width: 399px) {
-
   .main {
     padding-top: 2rem;
   }
@@ -216,20 +219,19 @@ img:hover{
   .container {
     width: 97%;
   }
-  .container__out{
+  .container__out {
     font-size: 1.3rem;
   }
-  .output_container{
+  .output_container {
     height: 22.5rem;
   }
-  .container__controls{
-    justify-content:start;
+  .container__controls {
+    justify-content: start;
   }
-  .container__Label{
+  .container__Label {
     font-size: 0.7rem;
-   }
-  .api_container{
+  }
+  .api_container {
     top: 0.3rem;
   }
-
 }
