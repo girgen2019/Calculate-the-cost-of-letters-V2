@@ -21,7 +21,6 @@
 html {
   scroll-behavior: smooth;
   overflow: hidden;
-  color-scheme: only light;
 }
 
 #myVideo {
@@ -140,6 +139,8 @@ img:hover {
   right: 2rem;
 }
 
+
+
 @media screen and (max-width: 964px) {
   #myVideo {
     position: fixed;
@@ -164,7 +165,6 @@ img:hover {
 @media screen and (max-width: 508px) {
   html {
     overflow: hidden;
-    color-scheme: only light;
   }
   .main {
     padding-top: 2rem;
@@ -207,9 +207,7 @@ img:hover {
 }
 
 @media screen and (max-width: 399px) {
-  html{
-    color-scheme: only light;
-  }
+
   #myVideo {
     position: fixed;
     right: -12rem;
