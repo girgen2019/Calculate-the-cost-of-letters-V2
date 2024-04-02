@@ -149,6 +149,7 @@ function addHeart() {
 function onInput() {
   let input = document.querySelector('input');
   let output = document.getElementById('output');
+  let sliceHidden = document.querySelector('.output_container')
   let inputString = '';
   spanInput.textContent = input.value;
   inputString += input.value;
@@ -161,7 +162,7 @@ function onInput() {
     totalSumUSD_YESPyroBolt.classList.remove('newClass');
     lengthOutputStringBolt.classList.remove('newClass');
     output.classList.add('container__out-hidden');
-    spanInput.textContent = "it isn't written yet...";
+    // sliceHidden.textContent = "it isn't written yet...";
   } else if (inputString.length >= 1) {
     totalSumUSD_NOPyro.classList.add('sumUSD');
     totalSumUSD_NOPyroBolt.classList.add('newClass');

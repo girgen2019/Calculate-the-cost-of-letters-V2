@@ -107,19 +107,29 @@ img:hover {
 }
 
 .container__out {
+  position: relative;
+  padding: 15px 10px;
   height: calc(100vh - 15rem - 60px);
   color: var(--main-text-color);
   font-size: 2rem;
   padding: 10px 10px;
   word-wrap: break-word;
+  z-index: 1;
 }
 
 .container__out-hidden {
+  display: none;
   height: 50vh;
   color: var(--primary-color);
   font-size: 2rem;
   padding: 10px 10px;
   word-wrap: break-word;
+}
+
+.output_container {
+  position: relative;
+  z-index: 2;
+  height: 22.5rem;
 }
 
 .newClass {
