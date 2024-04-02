@@ -2,6 +2,7 @@
 let USD_RATES;
 let defaultPlace = document.getElementById('robinson');
 let defaultPlaceFocus = document.querySelector('.container__controls');
+let doublePyro = document.getElementById('double');
 let spanInput = document.createElement('span');
 let outputStringConsist = document.createElement('div');
 let outputSimpleString = document.createElement('b');
@@ -20,13 +21,29 @@ totalSumUSD_YESPyro.classList.add('sumUSD');
 totalSumUSD_YESPyroBolt.classList.add('newClass');
 let heartClick = document.getElementById('heart');
 const heartCharCode = String.fromCharCode(10084);
-let doublePyro = document.getElementById("double")
 
-
-
-
-
-console.log(doublePyro.checked);
+doublePyro.addEventListener('click', () => {
+  if (!doublePyro.hasAttribute('checked')) {
+    doublePyro.setAttribute('checked', true);
+    addDoubleFountain();
+    onInput();
+  } else if (doublePyro.hasAttribute('checked')) {
+    doublePyro.removeAttribute('checked');
+    addDoubleFountain();
+    onInput();
+  }
+});
+defaultPlace.addEventListener('click', () => {
+  if (!defaultPlace.hasAttribute('checked')) {
+    defaultPlace.setAttribute('checked', true);
+    addFiveBaks();
+    onInput();
+  } else if (defaultPlace.hasAttribute('checked')) {
+    defaultPlace.removeAttribute('checked');
+    addFiveBaks();
+    onInput();
+  }
+});
 
 function getResult(
   checkedString,
@@ -35,17 +52,6 @@ function getResult(
   prepareResultsNoBYN,
   prepareResultsYesBYN
 ) {
-
-  doublePyro.addEventListener("click", () => {
-    doublePyro.setAttribute("checked", true)
-    if(doublePyro.checked){
-      console.log(prepareResultsNoUSD);
-      prepareResultsNoUSD += 14
-    }
-    console.log(doublePyro.checked);
-  })
-
-  
   outputSimpleString.textContent = checkedString;
   lengthOutputStringBolt.textContent =
     checkedString.length > 1
@@ -53,6 +59,7 @@ function getResult(
       : checkedString.length + ' unit';
   const TOTAL_SUM_NoPyrotechnicsBYN =
     prepareResultsNoBYN + Math.ceil(addFiveBaks() * USD_RATES) + ' BYN';
+  prepareResultsNoBYN + Math.ceil(addFiveBaks() * USD_RATES) + ' BYN';
   const TOTAL_SUM_YesPyrotechnicsBYN =
     prepareResultsYesBYN + Math.ceil(addFiveBaks() * USD_RATES) + ' BYN';
   totalSumUSD_NOPyroBolt.textContent =
@@ -85,12 +92,13 @@ function prepareResult(array) {
   ).length;
 
   let resultNoPyrotechnics = Math.ceil(
-    (sumLetters * 15 + sumHearts * 25 - 30) / 2 + 30
+    (sumLetters * 15 + sumHearts * 25 - 30) / 2 + 30 + addDoubleFountain()
   );
   let resultWithPyrotechnics = Math.ceil(
     (sumLetters * 15 + sumHearts * 25 - 30) / 2 +
       30 +
-      (sumLetters + sumHearts) * 7
+      (sumLetters + sumHearts) * 7 +
+      addDoubleFountain()
   );
 
   let resultNoPyrotechnicsBYN = Math.ceil(USD_RATES * resultNoPyrotechnics);
@@ -105,6 +113,14 @@ function prepareResult(array) {
   );
 }
 
+function addDoubleFountain() {
+  if (doublePyro.checked) {
+    return 14;
+  } else {
+    return 0;
+  }
+}
+
 function addFiveBaks() {
   if (defaultPlace.checked) {
     input.focus();
@@ -116,7 +132,8 @@ function addFiveBaks() {
 }
 
 function checkString(str) {
-  let inputStringArray = str.toLowerCase()
+  let inputStringArray = str
+    .toLowerCase()
     .split('')
     .filter((element) => element.trim())
     .map((element) => ` ${element}`);
