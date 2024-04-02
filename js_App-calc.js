@@ -58,10 +58,10 @@ function getResult(
       ? checkedString.length + ' units'
       : checkedString.length + ' unit';
   const TOTAL_SUM_NoPyrotechnicsBYN =
-    prepareResultsNoBYN + Math.ceil(addFiveBaks() * USD_RATES) + ' BYN';
-  prepareResultsNoBYN + Math.ceil(addFiveBaks() * USD_RATES) + ' BYN';
+    prepareResultsNoBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN';
+  prepareResultsNoBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN';
   const TOTAL_SUM_YesPyrotechnicsBYN =
-    prepareResultsYesBYN + Math.ceil(addFiveBaks() * USD_RATES) + ' BYN';
+    prepareResultsYesBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN';
   totalSumUSD_NOPyroBolt.textContent =
     prepareResultsNoUSD +
     addFiveBaks() +
