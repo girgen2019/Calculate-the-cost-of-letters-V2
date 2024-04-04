@@ -170,7 +170,6 @@ function onInput() {
     totalSumUSD_YESPyroBolt.classList.add('newClass');
     lengthOutputStringBolt.classList.add('newClass');
     output.classList.remove('container__out-hidden');
-    console.log("inputString", inputString);
   }
 
   output.appendChild(spanInput);
