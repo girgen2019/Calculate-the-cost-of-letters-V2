@@ -137,7 +137,7 @@ function checkString(str) {
     .split('')
     .filter((element) => element.trim())
     .map((element) => ` ${element}`);
-  prepareResult(inputStringArray);
+    prepareResult(inputStringArray);
 }
 
 function addHeart() {
@@ -149,10 +149,10 @@ function addHeart() {
 function onInput() {
   let input = document.querySelector('input');
   let output = document.getElementById('output');
-  let sliceHidden = document.querySelector('.output_container')
+  let sliceHidden = document.querySelector('.output_container');
   let inputString = '';
   spanInput.textContent = input.value;
-  inputString += input.value;
+  inputString += input.value.trim();
   checkString(inputString);
 
   if (inputString.length < 1) {
@@ -170,6 +170,7 @@ function onInput() {
     totalSumUSD_YESPyroBolt.classList.add('newClass');
     lengthOutputStringBolt.classList.add('newClass');
     output.classList.remove('container__out-hidden');
+    console.log("inputString", inputString);
   }
 
   output.appendChild(spanInput);
