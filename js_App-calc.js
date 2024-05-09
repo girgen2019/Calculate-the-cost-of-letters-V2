@@ -188,13 +188,16 @@ defaultPlaceFocus.addEventListener('click', () => {
 
 // =====API
 
-let API = fetch('https://www.nbrb.by/api/exrates/rates/431');
+let API = fetch('https://api.nbrb.by/exrates/rates/431');
 API.then((rates) => rates.json()).then((rates) => getAPI(rates));
+
 
 function getAPI(response) {
   let keyAPI = [];
   try {
     let mapAPI = Object.values(response);
+    console.log(mapAPI);
+
     let body = document.querySelector('.main');
     let divRate = document.createElement('div');
     divRate.classList.add('api_container');
