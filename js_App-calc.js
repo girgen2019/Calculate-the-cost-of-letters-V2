@@ -196,8 +196,6 @@ function getAPI(response) {
   let keyAPI = [];
   try {
     let mapAPI = Object.values(response);
-    console.log(mapAPI);
-
     let body = document.querySelector('.main');
     let divRate = document.createElement('div');
     divRate.classList.add('api_container');
