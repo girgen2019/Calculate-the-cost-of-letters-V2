@@ -22,7 +22,155 @@ totalSumUSD_YESPyroBolt.classList.add('newClass');
 let heartClick = document.getElementById('heart');
 const heartCharCode = String.fromCharCode(10084);
 
-doublePyro.addEventListener('click', () => {
+const select = document.getElementById('selectbox');
+select.addEventListener('change', () => {
+  switch (select.value) {
+    case '1':
+      break;
+    case '2':
+      let popup = document.createElement('div');
+      let main = document.querySelector('main');
+      let close = document.createElement('div');
+      let popupInput = document.createElement('input');
+      let popupOutput = document.createElement('span');
+      popupInput.setAttribute('type', 'text');
+      popupInput.classList.add('popupInput');
+      popupOutput.classList.add('popupOutput');
+      const tagFind = document.createElement('p');
+      popupOutput.appendChild(tagFind);
+      const tagNOTFound = document.createElement('p');
+      tagFind.classList.add('showResultPopup')
+      tagNOTFound.classList.add('showResultPopup')
+      popupOutput.appendChild(tagNOTFound);
+      popupInput.placeholder = 'check';
+      function popUpFocus() {
+        setTimeout(() => {
+          popupInput.focus();
+        }, 100);
+      }
+      if (popupInput) {
+        popUpFocus();
+      }
+      // ================ CHECK
+      const letters = [
+        'е',
+        'е',
+        'е',
+        'е',
+        'е',
+        'н',
+        'н',
+        'н',
+        'я',
+        'я',
+        'я',
+        'м',
+        'м',
+        'м',
+        'б',
+        'т',
+        'т',
+        'а',
+        'а',
+        'а',
+        'з',
+        'и',
+        'и',
+        'и',
+        'д',
+        'д',
+        'д',
+        'х',
+        'в',
+        'в',
+        'ы',
+        'ч',
+        'к',
+        'к',
+        'л',
+        'л',
+        'о',
+        'о',
+        'с',
+        'с',
+        'р',
+        'р',
+        'п',
+        'п',
+        'э',
+        'ж',
+        'ю',
+        'ш',
+      ];
+      function ShowFoundLetters([...alphabetArray], checkLetters) {
+        let result = [];
+        let notFound = [];
+        let checkArray = checkLetters
+          .toLowerCase()
+          .split('')
+          .filter((letter) => letter.trim());
+
+        if (checkLetters.length === 0) {
+        }
+        input1: for (let index1 = 0; index1 < checkArray.length; index1++) {
+          const elementsLettersArray = checkArray[index1];
+          input2: for (
+            let index2 = 0;
+            index2 < alphabetArray.length;
+            index2++
+          ) {
+            const elementsAlphabetArray = alphabetArray[index2];
+
+            if (elementsLettersArray === elementsAlphabetArray) {
+              result.push(elementsLettersArray);
+              alphabetArray.splice(index2, 1);
+              continue input1;
+            }
+            if (!alphabetArray.includes(elementsLettersArray)) {
+              notFound.push(elementsLettersArray);
+              break input2;
+            }
+          }
+        }
+
+         tagFind.textContent = `Letters are find ${result.join('')}  ---  length ${result.length}`;
+        tagNOTFound.textContent = `
+                  NOT Found ${notFound.join('')} --- length ${
+          notFound.length
+        } `;
+      }
+
+      // ================ CHECK
+      popupInput.addEventListener('input', () => {
+        let checkSting = '';
+        checkSting += popupInput.value;
+
+        ShowFoundLetters(letters, popupInput.value);
+      });
+
+      close.textContent = 'X';
+      close.classList.add('close');
+      close.onclick = function () {
+        popup.classList.remove('popup');
+        popup.textContent = '';
+        select.value = 1;
+        input.focus();
+      };
+      popup.appendChild(close);
+      popup.appendChild(popupInput);
+      popup.appendChild(popupOutput);
+      popup.classList.add('popup');
+      main.appendChild(popup);
+      console.dir(popupOutput);
+      console.log(popupInput.value);
+
+      break;
+    default:
+      break;
+  }
+});
+
+doublePyro.addEventListener('change', () => {
   if (!doublePyro.hasAttribute('checked')) {
     doublePyro.setAttribute('checked', true);
     addDoubleFountain();
@@ -137,7 +285,7 @@ function checkString(str) {
     .split('')
     .filter((element) => element.trim())
     .map((element) => ` ${element}`);
-    prepareResult(inputStringArray);
+  prepareResult(inputStringArray);
 }
 
 function addHeart() {
@@ -151,6 +299,8 @@ function onInput() {
   let output = document.getElementById('output');
   let sliceHidden = document.querySelector('.output_container');
   let inputString = '';
+  console.dir(input);
+
   spanInput.textContent = input.value;
   inputString += input.value.trim();
   checkString(inputString);
@@ -182,7 +332,7 @@ function onInput() {
 
 input.addEventListener('input', onInput);
 heartClick.addEventListener('click', addHeart);
-defaultPlaceFocus.addEventListener('click', () => {
+defaultPlaceFocus.addEventListener('fullscreenchange', () => {
   input.focus();
 });
 
@@ -190,7 +340,6 @@ defaultPlaceFocus.addEventListener('click', () => {
 
 let API = fetch('https://api.nbrb.by/exrates/rates/431');
 API.then((rates) => rates.json()).then((rates) => getAPI(rates));
-
 
 function getAPI(response) {
   let keyAPI = [];

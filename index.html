@@ -16,29 +16,23 @@
 </head>
 
 <body>
-   <video autoplay muted loop id="myVideo"> 
-   <source src="./assets/Video.mp4" type="video/mp4">  
-   </video>
+    <video autoplay muted loop id="myVideo">
+        <source src="./assets/Video.mp4" type="video/mp4">
+    </video>
     <main class="main">
         <!-- Input -->
-      
-            <div class="container">
-                <input 
-                class="container__input" 
-                id="input"
-                type="text" 
-                placeholder="Enter text..."
-                autofocus
-                >
 
-        
+        <div class="container">
+            <input class="container__input" id="input" type="text" placeholder="Enter text..." autofocus>
+
+
         </div>
         <!-- Controls -->
         <div class="container">
             <div class="container__controls">
 
-                <input type="image" class="heart__controls" id="heart" src="./assets/Heart.png"/>
-                
+                <input type="image" class="heart__controls" id="heart" src="./assets/Heart.png" />
+
                 <label class="container__Label">Robinson
                     <input type="checkbox" id="robinson" checked>
                     <span class="checkmark"></span>
@@ -47,14 +41,22 @@
                 <label class="container__Label">Double fountains
                     <input type="checkbox" id="double">
                     <span class="checkmark"></span>
-                </label> 
+                </label>
+                <label for="options" class="container__Label">Options
+
+                    <select class="selectbox" name="options" id="selectbox" selected="selected">
+                        <option value="1">Default</option>
+                        <option value="2">Checking letters</option>
+                        <!-- <option value="3">Add sum</option> -->
+                    </select>
+                </label>
             </div>
         </div>
         <!-- Output -->
         <div class="container">
             <div class="output_container">
                 <div class="container__out" id="output">
-    
+
                 </div>
             </div>
         </div>
