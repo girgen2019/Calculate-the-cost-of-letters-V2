@@ -214,7 +214,6 @@ select {
 .showResultPopup {
   overflow: hidden;
   /* width: 95%; */
-  color: var(--sub-text-color);
   word-break: break-all;
 }
 
@@ -229,6 +228,13 @@ select {
   padding: 4px 8px;
   z-index: 1;
   background-color: #6e757d;
+}
+
+.tagFindResult{
+  color: red;
+}
+.tagNOTFoundResult{
+  color: red;
 }
 
 @media screen and (max-width: 964px) {

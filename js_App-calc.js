@@ -36,12 +36,17 @@ select.addEventListener('change', () => {
       popupInput.setAttribute('type', 'text');
       popupInput.classList.add('popupInput');
       popupOutput.classList.add('popupOutput');
-      const tagFind = document.createElement('p');
+      let tagFind = document.createElement('div');
+      let tagFindResult = document.createElement('b');
+      tagFindResult.classList.add('tagFindResult')
       popupOutput.appendChild(tagFind);
-      const tagNOTFound = document.createElement('p');
+      popupOutput.appendChild(tagFindResult);
+      const tagNOTFound = document.createElement('div');
+      const tagNOTFoundResult = document.createElement('b');
       tagFind.classList.add('showResultPopup')
-      tagNOTFound.classList.add('showResultPopup')
+      tagNOTFoundResult.classList.add('tagNOTFoundResult')
       popupOutput.appendChild(tagNOTFound);
+      popupOutput.appendChild(tagNOTFoundResult);
       popupInput.placeholder = 'check';
       function popUpFocus() {
         setTimeout(() => {
@@ -133,12 +138,14 @@ select.addEventListener('change', () => {
           }
         }
 
-         tagFind.textContent = `Letters are find ${result.join('')}  ---  length ${result.length}`;
-        tagNOTFound.textContent = `
-                  NOT Found ${notFound.join('')} --- length ${
+         tagFind.textContent = "Found letters"; 
+         tagFindResult.textContent =`${result.join('')}  ---  length ${result.length}`;
+        tagNOTFound.textContent = "NOT Found" ;
+        tagNOTFoundResult.textContent = `${notFound.join('')} --- length ${
           notFound.length
         } `;
       }
+      
 
       // ================ CHECK
       popupInput.addEventListener('input', () => {
@@ -161,8 +168,6 @@ select.addEventListener('change', () => {
       popup.appendChild(popupOutput);
       popup.classList.add('popup');
       main.appendChild(popup);
-      console.dir(popupOutput);
-      console.log(popupInput.value);
 
       break;
     default:
