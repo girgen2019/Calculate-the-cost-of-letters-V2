@@ -287,9 +287,9 @@ select {
     top: 0.3rem;
   }
   .popup {
-    width: 80vw;
+    width: 90vw;
     height: 80vh;
-    left: 10%;
+    left: 5%;
   }
 }
 @media screen and (max-width: 471px) {
