@@ -232,9 +232,11 @@ select {
 
 .tagFindResult{
   color: red;
+  word-break: break-all;
 }
 .tagNOTFoundResult{
   color: red;
+  word-break: break-all;
 }
 
 @media screen and (max-width: 964px) {
