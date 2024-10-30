@@ -106,6 +106,10 @@ img:hover {
   cursor: pointer;
 }
 
+.container__Label1{
+  
+}
+
 .container__out {
   position: relative;
   padding: 15px 10px;
@@ -249,7 +253,7 @@ select {
     width: 70%;
   }
 }
-@media screen and (max-width: 660px) {
+@media screen and (max-width: 679px) {
   #myVideo {
     position: fixed;
     right: 0;
@@ -259,6 +263,14 @@ select {
   .container {
     width: 90%;
   }
+  .container__Label {
+        display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: start;
+    gap: 7px; 
+  }
+  
 }
 @media screen and (max-width: 508px) {
   html {
@@ -326,6 +338,7 @@ select {
     padding: 5px 5px;
     margin-bottom: 0.5rem;
   }
+  
   .container {
     width: 97%;
   }
@@ -340,7 +353,13 @@ select {
   }
   .container__Label {
     font-size: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: start;
+    gap: 7px;
   }
+
   .api_container {
     top: 0.3rem;
   }
