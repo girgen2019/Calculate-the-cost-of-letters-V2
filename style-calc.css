@@ -151,6 +151,22 @@ img:hover {
   position: fixed;
   top: 1rem;
   right: 2rem;
+} 
+
+@keyframes rainbow-text {
+  0% { color: #FF5733; } /* Оранжевый */
+  25% { color: #33FF57; } /* Зеленый */
+  50% { color: #3357FF; } /* Синий */
+  75% { color: #FF33A1; } /* Розовый */
+  100% { color: #FF5733; } /* Возврат к оранжевому */
+}
+
+/* Применяем анимацию к классу */
+.api_container1 {
+  animation-name: rainbow-text;
+  animation-duration: 5s; /* Длина одного цикла (5 секунд) */
+  animation-iteration-count: infinite; /* Повторять бесконечно */
+  animation-timing-function: linear; /* Плавная, равномерная скорость */
 }
 
 select {

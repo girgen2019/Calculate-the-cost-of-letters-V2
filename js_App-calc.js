@@ -251,7 +251,7 @@ function prepareResult(array) {
   let resultWithPyrotechnics = Math.ceil(
     (sumLetters * 15 + sumHearts * 25 - 30) / 2 +
       30 +
-      (sumLetters + sumHearts) * 7 +
+      (sumLetters + sumHearts) * 8 +
       addDoubleFountain()
   );
 
@@ -269,7 +269,7 @@ function prepareResult(array) {
 
 function addDoubleFountain() {
   if (doublePyro.checked) {
-    return 14;
+    return 16;
   } else {
     return 0;
   }
@@ -353,7 +353,9 @@ function getAPI(response) {
     let mapAPI = Object.values(response);
     let body = document.querySelector('.main');
     let divRate = document.createElement('div');
+    let messageNews = document.createElement('div');
     divRate.classList.add('api_container');
+    messageNews.classList.add('api_container1');
     if (mapAPI !== undefined || mapAPI !== null) {
       for (let key of mapAPI) {
         keyAPI.push(key);
@@ -370,7 +372,9 @@ function getAPI(response) {
         .reverse()
         .join('.');
       divRate.textContent = dateRateResult + ' ---- ' + USD_RATES + ' byn';
+      messageNews.textContent = 'PYRO was GROW by 1 USD'
       body.appendChild(divRate);
+      divRate.appendChild(messageNews);
     } else {
       USD_RATES = 1;
     }
