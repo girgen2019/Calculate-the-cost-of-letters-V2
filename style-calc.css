@@ -149,7 +149,7 @@ img:hover {
 
 .api_container {
   position: fixed;
-  top: 1rem;
+  top: 0.5rem;
   right: 2rem;
 } 
 
@@ -293,7 +293,7 @@ select {
     overflow: hidden;
   }
   .main {
-    padding-top: 2rem;
+    padding-top: 3rem;
   }
   .container__controls {
     margin-top: 1rem;
@@ -344,7 +344,7 @@ select {
     top: -16rem;
   }
   .main {
-    padding-top: 2rem;
+    padding-top: 3rem;
   }
   .container {
     opacity: 0.89;
