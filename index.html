@@ -16,8 +16,9 @@
 </head>
 
 <body>
-    <video autoplay muted loop id="myVideo">
-        <source src="./assets/Video.webm" type="video/mp4">
+    <video autoplay muted loop playsinline id="myVideo">
+        <source src="./assets/Video.webm" type="video/webm">
+        <source src="./assets/Video.mp4" type="video/mp4">
     </video>
     <main class="main">
         <!-- Input -->
@@ -34,7 +35,7 @@
                 <input type="image" class="heart__controls" id="heart" src="./assets/Heart.png" />
 
                 <label class="container__Label">Robinson club
-                    
+
                     <input type="checkbox" id="robinson" checked>
                     <span class="checkmark"></span>
                 </label>
