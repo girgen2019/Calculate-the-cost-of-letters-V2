@@ -364,20 +364,14 @@ function getAPI(response) {
   }
   USD_RATES = rate;
   const dateRateResult = response.Date.slice(0, 10).split('-').reverse().join('.');
-  showRate(dateRateResult + ' ---- ' + USD_RATES + ' byn', 'PYRO was GROW by 1 USD');
+  showRate(dateRateResult + ' ---- ' + USD_RATES + ' byn');
   onInput();
 }
 
-function showRate(text, news) {
+function showRate(text) {
   const body = document.querySelector('.main');
   const divRate = document.createElement('div');
   divRate.classList.add('api_container');
   divRate.textContent = text;
-  if (news) {
-    const messageNews = document.createElement('div');
-    messageNews.classList.add('api_container1');
-    messageNews.textContent = news;
-    divRate.appendChild(messageNews);
-  }
   body.appendChild(divRate);
 }
