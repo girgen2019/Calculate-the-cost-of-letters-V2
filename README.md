@@ -71,11 +71,15 @@ Open `index.html` in a browser. An internet connection is needed for the exchang
 
 ```
 index.html          page layout: input, options, result block, video background
-js_App-calc.js      price calculation, letters check, NBRB API call
+js_App-calc.js      price calculation, letters check, NBRB rate and Open-Meteo weather
 style-calc.css      styles and responsive breakpoints
 assets/             background video (webm + mp4), icons, favicon
 docs/screenshot.png screenshot for this README
 ```
+
+GitHub Pages lets browsers cache files for 10 minutes, so `index.html` loads the CSS and JS with a version
+query (`style-calc.css?v=20261022`). **After changing the CSS or JS, bump this value** — otherwise visitors can
+get the new page with the old styles or script.
 
 ## Exchange rate handling
 
