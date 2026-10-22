@@ -15,8 +15,8 @@ hearts) for events — and checks whether the inscription can be assembled from 
   (`https://api.nbrb.by/exrates/rates/431`) and shown in the header.
 - **Weather at the venue:** forecast for **Robinson Club** (Minsk District, shore of the Minsk Sea,
   fixed coordinates `53.9508, 27.3387`) from [Open-Meteo](https://open-meteo.com/). Pick any date from today
-  up to 15 days ahead — the weather for that day is shown at once: conditions, min/max temperature, chance of
-  rain and max wind. Rain and wind matter for a fire and pyrotechnics show.
+  up to 15 days ahead — the weather for that day is shown at once: weather icon (hover for the conditions),
+  min/max temperature and max wind. The rate and the weather are shown as two matching chips in the header.
 - **Options:**
   - ❤ button — adds a heart to the inscription;
   - **Robinson club** — venue surcharge (on by default);

@@ -353,25 +353,38 @@ fetch('https://api.nbrb.by/exrates/rates/431')
     return rates.json();
   })
   .then((rates) => getAPI(rates))
-  .catch(() => showRate('USD rate is unavailable — prices in BYN are not shown'));
+  .catch(() => showRate([chipPart('span', 'chip__muted', 'USD rate unavailable')]));
 
 // Read the fields by name: the NBRB response gained "Cur_Code": "840" before "Date",
 // so "the first text field" was no longer the date.
 function getAPI(response) {
   const rate = response.Cur_OfficialRate;
   if (typeof rate !== 'number' || typeof response.Date !== 'string') {
-    showRate('USD rate is unavailable — prices in BYN are not shown');
+    showRate([chipPart('span', 'chip__muted', 'USD rate unavailable')]);
     return;
   }
   USD_RATES = rate;
   const dateRateResult = response.Date.slice(0, 10).split('-').reverse().join('.');
-  showRate(dateRateResult + ' ---- ' + USD_RATES + ' byn');
+  // Same pattern as the weather chip: label · value in bold · secondary text
+  showRate([
+    chipPart('span', 'chip__label', 'USD'),
+    chipPart('b', 'chip__value', USD_RATES.toFixed(4)),
+    chipPart('span', '', 'BYN'),
+    chipPart('span', 'chip__muted', dateRateResult),
+  ]);
   onInput();
 }
 
-function showRate(text) {
-  document.getElementById('rate').textContent = text;
+function showRate(parts) {
+  document.getElementById('rate').replaceChildren(...parts);
   fitUnderHeader();
+}
+
+function chipPart(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  el.textContent = text;
+  return el;
 }
 
 // The header height changes with the screen width and its content, so keep the form right under it
@@ -423,7 +436,7 @@ let forecast = null;
 fetch(
   'https://api.open-meteo.com/v1/forecast' +
     `?latitude=${ROBINSON_CLUB.lat}&longitude=${ROBINSON_CLUB.lon}` +
-    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max' +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max' +
     '&timezone=Europe%2FMinsk&forecast_days=16'
 )
   .then((res) => {
@@ -440,23 +453,30 @@ fetch(
   })
   .catch(() => {
     weatherDate.disabled = true;
-    weatherInfo.textContent = 'Forecast unavailable';
+    weatherInfo.replaceChildren(chipPart('span', 'chip__muted', 'Forecast unavailable'));
     fitUnderHeader();
   });
 
 weatherDate.addEventListener('change', () => showWeather(weatherDate.value));
 
+// Icon · temperature in bold · wind — the condition name is a tooltip on the icon
 function showWeather(date) {
   const i = forecast ? forecast.time.indexOf(date) : -1;
   if (i < 0) {
-    weatherInfo.textContent = 'No forecast for this date (up to 16 days ahead)';
+    weatherInfo.replaceChildren(chipPart('span', 'chip__muted', 'No forecast'));
     return;
   }
   const [icon, text] = WEATHER_CODES[forecast.weather_code[i]] || ['🌡️', 'Unknown'];
-  const rain = forecast.precipitation_probability_max[i];
-  weatherInfo.textContent =
-    `${icon} ${text}, ${Math.round(forecast.temperature_2m_min[i])}…` +
-    `${Math.round(forecast.temperature_2m_max[i])} °C · 💧 ${rain === null ? '—' : rain + '%'}` +
-    ` · 💨 ${Math.round(forecast.wind_speed_10m_max[i])} km/h`;
+  const iconEl = chipPart('span', 'weather__icon', icon);
+  iconEl.title = text;
+  weatherInfo.replaceChildren(
+    iconEl,
+    chipPart(
+      'b',
+      'chip__value',
+      `${Math.round(forecast.temperature_2m_min[i])}…${Math.round(forecast.temperature_2m_max[i])}°C`
+    ),
+    chipPart('span', 'chip__muted', `💨 ${Math.round(forecast.wind_speed_10m_max[i])} km/h`)
+  );
   fitUnderHeader();
 }
