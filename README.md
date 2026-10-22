@@ -12,7 +12,11 @@ hearts) for events — and checks whether the inscription can be assembled from 
 - **Instant price** while typing: the inscription, its letters and the number of units are shown live.
 - **Two prices at once:** without pyrotechnics and with pyrotechnics, in **USD and BYN**.
 - **Live exchange rate:** the official USD rate is loaded from the National Bank of Belarus API
-  (`https://api.nbrb.by/exrates/rates/431`) and shown in the top-right corner.
+  (`https://api.nbrb.by/exrates/rates/431`) and shown in the header.
+- **Weather at the venue:** forecast for **Robinson Club** (Minsk District, shore of the Minsk Sea,
+  fixed coordinates `53.9508, 27.3387`) from [Open-Meteo](https://open-meteo.com/). Pick any date from today
+  up to 15 days ahead — the weather for that day is shown at once: conditions, min/max temperature, chance of
+  rain and max wind. Rain and wind matter for a fire and pyrotechnics show.
 - **Options:**
   - ❤ button — adds a heart to the inscription;
   - **Robinson club** — venue surcharge (on by default);
@@ -50,7 +54,7 @@ available shows the extra ones as **NOT Found**.
 ## Tech stack
 
 `HTML5` `CSS3` (Flexbox, media queries) `JavaScript (ES6, no frameworks)` `Fetch API`
-`REST API (NBRB)` `GitHub Pages`
+`REST API (NBRB, Open-Meteo)` `GitHub Pages`
 
 ## Run locally
 
@@ -61,7 +65,7 @@ git clone https://github.com/girgen2019/Calculate-the-cost-of-letters-V2.git
 cd Calculate-the-cost-of-letters-V2
 ```
 
-Open `index.html` in a browser. An internet connection is needed for the exchange rate and Google Fonts.
+Open `index.html` in a browser. An internet connection is needed for the exchange rate, the weather forecast and Google Fonts.
 
 ## Project structure
 
@@ -79,3 +83,5 @@ docs/screenshot.png screenshot for this README
   fields in the API response do not break the label.
 - If the API is unavailable, the page says so and shows `BYN n/a` instead of `NaN`; USD prices still work.
 - If the rate arrives after the user has already typed, the prices are recalculated automatically.
+
+Weather data by [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0).

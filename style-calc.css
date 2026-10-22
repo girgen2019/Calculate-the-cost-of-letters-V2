@@ -147,11 +147,56 @@ img:hover {
   display: none;
 }
 
-.api_container {
+/* Header: USD rate near the centre, Robinson Club weather on the right */
+.topbar {
   position: fixed;
-  top: 0.5rem;
-  right: 2rem;
-} 
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.35rem 1.5rem;
+  background-color: rgba(23, 30, 40, 0.6);
+  color: var(--main-text-color);
+  font-family: var(--primary-font);
+  font-size: 0.85rem;
+}
+.topbar__rate {
+  grid-column: 2;
+  white-space: nowrap;
+}
+.topbar__weather {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+.weather__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.2rem 0.6rem;
+}
+.weather__label {
+  font-weight: 600;
+}
+.weather__date {
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 1px 4px;
+  border: none;
+  border-radius: 6px;
+}
+.weather__source {
+  color: var(--sub-text-color);
+  font-size: 0.7rem;
+}
 
 select {
   padding: 0.25em;
@@ -254,6 +299,23 @@ select {
   }
 }
 @media screen and (max-width: 679px) {
+  /* Rate and weather one under another, centred */
+  .topbar {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+    padding: 0.35rem 0.75rem;
+    text-align: center;
+  }
+  .topbar__rate,
+  .topbar__weather {
+    grid-column: 1;
+    justify-self: center;
+  }
+  .topbar__weather,
+  .weather__row {
+    align-items: center;
+    justify-content: center;
+  }
   #myVideo {
     position: fixed;
     right: 0;
@@ -296,9 +358,6 @@ select {
   .container__Label {
     margin-right: 2rem;
     /* font-size: 0.7rem; */
-  }
-  .api_container {
-    top: 0.3rem;
   }
   .popup {
     width: 90vw;
@@ -358,9 +417,5 @@ select {
     justify-content: space-between;
     align-items: start;
     gap: 7px;
-  }
-
-  .api_container {
-    top: 0.3rem;
   }
 }

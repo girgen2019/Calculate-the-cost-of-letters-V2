@@ -303,7 +303,8 @@ function addHeart() {
 }
 
 function onInput() {
-  let input = document.querySelector('input');
+  // By id, not "the first input on the page": the header has a date input before it
+  let input = document.getElementById('input');
   let output = document.getElementById('output');
   let sliceHidden = document.querySelector('.output_container');
   let inputString = '';
@@ -369,9 +370,93 @@ function getAPI(response) {
 }
 
 function showRate(text) {
-  const body = document.querySelector('.main');
-  const divRate = document.createElement('div');
-  divRate.classList.add('api_container');
-  divRate.textContent = text;
-  body.appendChild(divRate);
+  document.getElementById('rate').textContent = text;
+  fitUnderHeader();
+}
+
+// The header height changes with the screen width and its content, so keep the form right under it
+function fitUnderHeader() {
+  const header = document.querySelector('.topbar');
+  document.querySelector('.main').style.paddingTop = header.offsetHeight + 12 + 'px';
+}
+window.addEventListener('resize', fitUnderHeader);
+fitUnderHeader();
+
+// =====WEATHER — fixed location: Robinson Club, Minsk District (shore of the Minsk Sea)
+
+const ROBINSON_CLUB = { lat: 53.9508, lon: 27.3387 };
+const WEATHER_CODES = {
+  0: ['☀️', 'Clear'],
+  1: ['🌤️', 'Mainly clear'],
+  2: ['⛅', 'Partly cloudy'],
+  3: ['☁️', 'Overcast'],
+  45: ['🌫️', 'Fog'],
+  48: ['🌫️', 'Rime fog'],
+  51: ['🌦️', 'Light drizzle'],
+  53: ['🌦️', 'Drizzle'],
+  55: ['🌧️', 'Dense drizzle'],
+  56: ['🌧️', 'Freezing drizzle'],
+  57: ['🌧️', 'Freezing drizzle'],
+  61: ['🌧️', 'Light rain'],
+  63: ['🌧️', 'Rain'],
+  65: ['🌧️', 'Heavy rain'],
+  66: ['🌧️', 'Freezing rain'],
+  67: ['🌧️', 'Freezing rain'],
+  71: ['🌨️', 'Light snow'],
+  73: ['🌨️', 'Snow'],
+  75: ['❄️', 'Heavy snow'],
+  77: ['🌨️', 'Snow grains'],
+  80: ['🌦️', 'Rain showers'],
+  81: ['🌧️', 'Rain showers'],
+  82: ['⛈️', 'Violent rain showers'],
+  85: ['🌨️', 'Snow showers'],
+  86: ['❄️', 'Heavy snow showers'],
+  95: ['⛈️', 'Thunderstorm'],
+  96: ['⛈️', 'Thunderstorm with hail'],
+  99: ['⛈️', 'Thunderstorm with hail'],
+};
+
+const weatherDate = document.getElementById('weatherDate');
+const weatherInfo = document.getElementById('weatherInfo');
+let forecast = null;
+
+fetch(
+  'https://api.open-meteo.com/v1/forecast' +
+    `?latitude=${ROBINSON_CLUB.lat}&longitude=${ROBINSON_CLUB.lon}` +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max' +
+    '&timezone=Europe%2FMinsk&forecast_days=16'
+)
+  .then((res) => {
+    if (!res.ok) throw new Error('Open-Meteo status ' + res.status);
+    return res.json();
+  })
+  .then((data) => {
+    forecast = data.daily;
+    // The API gives today + 15 days; the date picker allows only that range
+    weatherDate.min = forecast.time[0];
+    weatherDate.max = forecast.time[forecast.time.length - 1];
+    weatherDate.value = forecast.time[0];
+    showWeather(weatherDate.value);
+  })
+  .catch(() => {
+    weatherDate.disabled = true;
+    weatherInfo.textContent = 'Forecast unavailable';
+    fitUnderHeader();
+  });
+
+weatherDate.addEventListener('change', () => showWeather(weatherDate.value));
+
+function showWeather(date) {
+  const i = forecast ? forecast.time.indexOf(date) : -1;
+  if (i < 0) {
+    weatherInfo.textContent = 'No forecast for this date (up to 16 days ahead)';
+    return;
+  }
+  const [icon, text] = WEATHER_CODES[forecast.weather_code[i]] || ['🌡️', 'Unknown'];
+  const rain = forecast.precipitation_probability_max[i];
+  weatherInfo.textContent =
+    `${icon} ${text}, ${Math.round(forecast.temperature_2m_min[i])}…` +
+    `${Math.round(forecast.temperature_2m_max[i])} °C · 💧 ${rain === null ? '—' : rain + '%'}` +
+    ` · 💨 ${Math.round(forecast.wind_speed_10m_max[i])} km/h`;
+  fitUnderHeader();
 }
