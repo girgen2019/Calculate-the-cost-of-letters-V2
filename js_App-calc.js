@@ -369,8 +369,8 @@ function getAPI(response) {
   showRate([
     chipPart('span', 'chip__label', 'USD'),
     chipPart('b', 'chip__value', USD_RATES.toFixed(4)),
-    chipPart('span', '', 'BYN'),
-    chipPart('span', 'chip__muted', dateRateResult),
+    chipPart('span', 'chip__unit', 'BYN'),
+    chipPart('span', 'chip__muted rate__date', dateRateResult),
   ]);
   onInput();
 }
@@ -453,14 +453,27 @@ fetch(
   })
   .catch(() => {
     weatherDate.disabled = true;
+    document.querySelector('.weather__when').hidden = true;
     weatherInfo.replaceChildren(chipPart('span', 'chip__muted', 'Forecast unavailable'));
     fitUnderHeader();
   });
 
 weatherDate.addEventListener('change', () => showWeather(weatherDate.value));
+// Phones open the picker on tap; desktop Chrome needs showPicker() when the text part is clicked
+weatherDate.addEventListener('click', () => {
+  try {
+    weatherDate.showPicker();
+  } catch (e) {
+    // not supported or already open — the native behaviour is enough
+  }
+});
 
 // Icon · temperature in bold · wind — the condition name is a tooltip on the icon
 function showWeather(date) {
+  const [y, m, d] = date.split('-');
+  document.getElementById('weatherDateFull').textContent = `${d}.${m}.${y}`;
+  document.getElementById('weatherDateShort').textContent = `${d}.${m}`;
+
   const i = forecast ? forecast.time.indexOf(date) : -1;
   if (i < 0) {
     weatherInfo.replaceChildren(chipPart('span', 'chip__muted', 'No forecast'));
@@ -476,7 +489,14 @@ function showWeather(date) {
       'chip__value',
       `${Math.round(forecast.temperature_2m_min[i])}…${Math.round(forecast.temperature_2m_max[i])}°C`
     ),
-    chipPart('span', 'chip__muted', `💨 ${Math.round(forecast.wind_speed_10m_max[i])} km/h`)
+    windPart(Math.round(forecast.wind_speed_10m_max[i]))
   );
   fitUnderHeader();
+}
+
+// "💨 22 km/h"; on phones only "💨 22" is shown (the unit is hidden by CSS)
+function windPart(speed) {
+  const wind = chipPart('span', 'chip__muted', `💨 ${speed}`);
+  wind.appendChild(chipPart('span', 'chip__unit', ' km/h'));
+  return wind;
 }

@@ -23,8 +23,15 @@
     <header class="topbar">
         <div class="chip topbar__rate" id="rate">Loading rate…</div>
         <div class="chip topbar__weather">
-            <label class="chip__label" for="weatherDate">Robinson Club</label>
-            <input type="date" class="weather__date" id="weatherDate">
+            <span class="chip__label weather__place">Robinson Club</span>
+            <!-- The visible date is our own text (DD.MM.YYYY on any phone locale);
+                 the real date input lies invisibly on top of it and opens the picker -->
+            <label class="weather__when" title="Choose a date">
+                <span aria-hidden="true">📅</span>
+                <span class="weather__date-full" id="weatherDateFull">…</span>
+                <span class="weather__date-short" id="weatherDateShort">…</span>
+                <input type="date" class="weather__date" id="weatherDate" aria-label="Forecast date">
+            </label>
             <span class="weather__info" id="weatherInfo">Loading…</span>
         </div>
     </header>
