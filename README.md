@@ -1,0 +1,81 @@
+# 🔥 Letters Cost Calculator
+
+A small web app that calculates the price of a **fire letters show** — a burning inscription (names, words,
+hearts) for events — and checks whether the inscription can be assembled from the letters available in stock.
+
+▶️ **Live demo:** https://girgen2019.github.io/Calculate-the-cost-of-letters-V2/
+
+![Calculator with the inscription "Мама❤"](docs/screenshot.png)
+
+## Features
+
+- **Instant price** while typing: the inscription, its letters and the number of units are shown live.
+- **Two prices at once:** without pyrotechnics and with pyrotechnics, in **USD and BYN**.
+- **Live exchange rate:** the official USD rate is loaded from the National Bank of Belarus API
+  (`https://api.nbrb.by/exrates/rates/431`) and shown in the top-right corner.
+- **Options:**
+  - ❤ button — adds a heart to the inscription;
+  - **Robinson club** — venue surcharge (on by default);
+  - **Double fountains** — extra pyrotechnic fountains.
+- **Checking letters** mode (Options → Checking letters): type a word and see which letters can be taken from
+  the physical set in stock and which ones are missing.
+- Fullscreen video background and responsive layout (5 breakpoints, down to 399 px).
+
+## How the price is calculated
+
+Spaces are ignored; every other character is one unit.
+
+```
+base         = ceil( (letters × 15 + hearts × 25 − 30) / 2 + 30 + fountains )
+pyrotechnics = ceil( (letters × 15 + hearts × 25 − 30) / 2 + 30 + (letters + hearts) × 8 + fountains )
+
+fountains    = 16 USD if "Double fountains" is checked, otherwise 0
+total        = base or pyrotechnics + 5 USD if "Robinson club" is checked
+BYN          = USD × official NBRB rate (rounded up)
+```
+
+**Example — "Мама❤"** (4 letters + 1 heart, Robinson club on):
+
+| | Calculation | Result |
+|---|---|---|
+| Without pyrotechnics | (60 + 25 − 30) / 2 + 30 = 57.5 → 58, + 5 | **63 USD** |
+| With pyrotechnics | 57.5 + 5 × 8 = 97.5 → 98, + 5 | **103 USD** |
+
+## Checking letters
+
+The stock is a fixed set of physical letters (for example `е` × 5, `н` × 3, `я` × 3, `б` × 1).
+The checker takes letters from the set one by one, so a word that needs more copies of a letter than are
+available shows the extra ones as **NOT Found**.
+
+## Tech stack
+
+`HTML5` `CSS3` (Flexbox, media queries, custom checkboxes) `JavaScript (ES6, no frameworks)` `Fetch API`
+`REST API (NBRB)` `GitHub Pages`
+
+## Run locally
+
+No build step is needed:
+
+```bash
+git clone https://github.com/girgen2019/Calculate-the-cost-of-letters-V2.git
+cd Calculate-the-cost-of-letters-V2
+```
+
+Open `index.html` in a browser. An internet connection is needed for the exchange rate and Google Fonts.
+
+## Project structure
+
+```
+index.html          page layout: input, options, result block, video background
+js_App-calc.js      price calculation, letters check, NBRB API call
+style-calc.css      styles and responsive breakpoints
+assets/             background video (webm + mp4), icons, favicon
+docs/screenshot.png screenshot for this README
+```
+
+## Known issues
+
+- The rate label in the top-right corner shows the currency code **840** instead of the rate date: the date is
+  taken as the first text field of the API response, and the NBRB response now has `Cur_Code: "840"` before
+  `Date`.
+- If the NBRB API is unavailable, the BYN amounts are shown as `NaN` because no fallback rate is set.
