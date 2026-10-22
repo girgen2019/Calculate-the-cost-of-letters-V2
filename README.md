@@ -49,7 +49,7 @@ available shows the extra ones as **NOT Found**.
 
 ## Tech stack
 
-`HTML5` `CSS3` (Flexbox, media queries, custom checkboxes) `JavaScript (ES6, no frameworks)` `Fetch API`
+`HTML5` `CSS3` (Flexbox, media queries) `JavaScript (ES6, no frameworks)` `Fetch API`
 `REST API (NBRB)` `GitHub Pages`
 
 ## Run locally
