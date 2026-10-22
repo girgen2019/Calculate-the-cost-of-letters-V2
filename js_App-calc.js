@@ -211,11 +211,13 @@ function getResult(
     checkedString.length > 1
       ? checkedString.length + ' units'
       : checkedString.length + ' unit';
-  const TOTAL_SUM_NoPyrotechnicsBYN =
-    prepareResultsNoBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN';
-  prepareResultsNoBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN';
-  const TOTAL_SUM_YesPyrotechnicsBYN =
-    prepareResultsYesBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN';
+  // Without a rate (API unavailable) show that BYN is unknown instead of "NaN BYN"
+  const TOTAL_SUM_NoPyrotechnicsBYN = USD_RATES
+    ? prepareResultsNoBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN'
+    : 'BYN n/a';
+  const TOTAL_SUM_YesPyrotechnicsBYN = USD_RATES
+    ? prepareResultsYesBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN'
+    : 'BYN n/a';
   totalSumUSD_NOPyroBolt.textContent =
     prepareResultsNoUSD +
     addFiveBaks() +
@@ -344,41 +346,38 @@ defaultPlaceFocus.addEventListener('fullscreenchange', () => {
 
 // =====API
 
-let API = fetch('https://api.nbrb.by/exrates/rates/431');
-API.then((rates) => rates.json()).then((rates) => getAPI(rates));
+fetch('https://api.nbrb.by/exrates/rates/431')
+  .then((rates) => {
+    if (!rates.ok) throw new Error('NBRB API status ' + rates.status);
+    return rates.json();
+  })
+  .then((rates) => getAPI(rates))
+  .catch(() => showRate('USD rate is unavailable — prices in BYN are not shown'));
 
+// Read the fields by name: the NBRB response gained "Cur_Code": "840" before "Date",
+// so "the first text field" was no longer the date.
 function getAPI(response) {
-  let keyAPI = [];
-  try {
-    let mapAPI = Object.values(response);
-    let body = document.querySelector('.main');
-    let divRate = document.createElement('div');
-    let messageNews = document.createElement('div');
-    divRate.classList.add('api_container');
-    messageNews.classList.add('api_container1');
-    if (mapAPI !== undefined || mapAPI !== null) {
-      for (let key of mapAPI) {
-        keyAPI.push(key);
-      }
-    }
-    if (USD_RATES !== undefined || USD_RATES !== null) {
-      USD_RATES = keyAPI.find(
-        (rate) => !Number.isInteger(rate) && typeof rate === 'number'
-      );
-      let dateRate = keyAPI.find((date) => typeof date === 'string');
-      let dateRateResult = dateRate
-        .split('-')
-        .map((date) => (date.length > 5 ? date.slice(0, 2) : date))
-        .reverse()
-        .join('.');
-      divRate.textContent = dateRateResult + ' ---- ' + USD_RATES + ' byn';
-      messageNews.textContent = 'PYRO was GROW by 1 USD'
-      body.appendChild(divRate);
-      divRate.appendChild(messageNews);
-    } else {
-      USD_RATES = 1;
-    }
-  } catch (error) {
-    keyAPI.push(1);
+  const rate = response.Cur_OfficialRate;
+  if (typeof rate !== 'number' || typeof response.Date !== 'string') {
+    showRate('USD rate is unavailable — prices in BYN are not shown');
+    return;
   }
+  USD_RATES = rate;
+  const dateRateResult = response.Date.slice(0, 10).split('-').reverse().join('.');
+  showRate(dateRateResult + ' ---- ' + USD_RATES + ' byn', 'PYRO was GROW by 1 USD');
+  onInput();
+}
+
+function showRate(text, news) {
+  const body = document.querySelector('.main');
+  const divRate = document.createElement('div');
+  divRate.classList.add('api_container');
+  divRate.textContent = text;
+  if (news) {
+    const messageNews = document.createElement('div');
+    messageNews.classList.add('api_container1');
+    messageNews.textContent = news;
+    divRate.appendChild(messageNews);
+  }
+  body.appendChild(divRate);
 }

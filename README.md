@@ -73,9 +73,9 @@ assets/             background video (webm + mp4), icons, favicon
 docs/screenshot.png screenshot for this README
 ```
 
-## Known issues
+## Exchange rate handling
 
-- The rate label in the top-right corner shows the currency code **840** instead of the rate date: the date is
-  taken as the first text field of the API response, and the NBRB response now has `Cur_Code: "840"` before
-  `Date`.
-- If the NBRB API is unavailable, the BYN amounts are shown as `NaN` because no fallback rate is set.
+- The rate and its date are read from the NBRB response **by field name** (`Cur_OfficialRate`, `Date`), so new
+  fields in the API response do not break the label.
+- If the API is unavailable, the page says so and shows `BYN n/a` instead of `NaN`; USD prices still work.
+- If the rate arrives after the user has already typed, the prices are recalculated automatically.
