@@ -21,8 +21,9 @@ hearts) for events — and checks whether the inscription can be assembled from 
   - ❤ button — adds a heart to the inscription;
   - **Robinson club** — venue surcharge (on by default);
   - **Double fountains** — extra pyrotechnic fountains.
-- **Checking letters** mode (Options → Checking letters): type a word and see which letters can be taken from
-  the physical set in stock and which ones are missing.
+- **Checking letters** mode (Options → Checking letters): a dialog in the calculator style — type a word and see which letters can be taken from
+  the physical set in stock and which ones are missing, shown as letter tiles with counters. It opens and closes
+  with a fade/scale animation; close with ✕, Esc or a click outside.
 - Fullscreen video background and responsive layout (5 breakpoints, down to 399 px).
 
 ## How the price is calculated

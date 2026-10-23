@@ -24,157 +24,128 @@ const heartCharCode = String.fromCharCode(10084);
 
 const select = document.getElementById('selectbox');
 select.addEventListener('change', () => {
-  switch (select.value) {
-    case '1':
-      break;
-    case '2':
-      let popup = document.createElement('div');
-      let main = document.querySelector('main');
-      let close = document.createElement('div');
-      let popupInput = document.createElement('input');
-      let popupOutput = document.createElement('span');
-      popupInput.setAttribute('type', 'text');
-      popupInput.classList.add('popupInput');
-      popupOutput.classList.add('popupOutput');
-      let tagFind = document.createElement('div');
-      let tagFindResult = document.createElement('b');
-      tagFindResult.classList.add('tagFindResult');
-      popupOutput.appendChild(tagFind);
-      popupOutput.appendChild(tagFindResult);
-      const tagNOTFound = document.createElement('div');
-      const tagNOTFoundResult = document.createElement('b');
-      tagFind.classList.add('showResultPopup');
-      tagNOTFoundResult.classList.add('tagNOTFoundResult');
-      popupOutput.appendChild(tagNOTFound);
-      popupOutput.appendChild(tagNOTFoundResult);
-      popupInput.placeholder = 'check';
-      function popUpFocus() {
-        setTimeout(() => {
-          popupInput.focus();
-        }, 100);
-      }
-      if (popupInput) {
-        popUpFocus();
-      }
-      // ================ CHECK
-      const letters = [
-        'е',
-        'е',
-        'е',
-        'е',
-        'е',
-        'н',
-        'н',
-        'н',
-        'я',
-        'я',
-        'я',
-        'м',
-        'м',
-        'м',
-        'б',
-        'т',
-        'т',
-        'а',
-        'а',
-        'а',
-        'з',
-        'и',
-        'и',
-        'и',
-        'д',
-        'д',
-        'д',
-        'х',
-        'в',
-        'в',
-        'ы',
-        'ч',
-        'к',
-        'к',
-        'л',
-        'л',
-        'о',
-        'о',
-        'с',
-        'с',
-        'р',
-        'р',
-        'п',
-        'п',
-        'э',
-        'ж',
-        'ю',
-        'ш',
-      ];
-      function ShowFoundLetters([...alphabetArray], checkLetters) {
-        let result = [];
-        let notFound = [];
-        let checkArray = checkLetters
-          .toLowerCase()
-          .split('')
-          .filter((letter) => letter.trim());
-
-        if (checkLetters.length === 0) {
-        }
-        input1: for (let index1 = 0; index1 < checkArray.length; index1++) {
-          const elementsLettersArray = checkArray[index1];
-          input2: for (
-            let index2 = 0;
-            index2 < alphabetArray.length;
-            index2++
-          ) {
-            const elementsAlphabetArray = alphabetArray[index2];
-
-            if (elementsLettersArray === elementsAlphabetArray) {
-              result.push(elementsLettersArray);
-              alphabetArray.splice(index2, 1);
-              continue input1;
-            }
-            if (!alphabetArray.includes(elementsLettersArray)) {
-              notFound.push(elementsLettersArray);
-              break input2;
-            }
-          }
-        }
-
-        tagFind.textContent = 'Found letters';
-        tagFindResult.textContent = `${result.join('')}  ---  length ${
-          result.length
-        }`;
-        tagNOTFound.textContent = 'NOT Found';
-        tagNOTFoundResult.textContent = `${notFound.join('')} --- length ${
-          notFound.length
-        } `;
-      }
-
-      // ================ CHECK
-      popupInput.addEventListener('input', () => {
-        let checkSting = '';
-        checkSting += popupInput.value;
-
-        ShowFoundLetters(letters, popupInput.value);
-      });
-
-      close.textContent = 'X';
-      close.classList.add('close');
-      close.onclick = function () {
-        popup.classList.remove('popup');
-        popup.textContent = '';
-        select.value = 1;
-        input.focus();
-      };
-      popup.appendChild(close);
-      popup.appendChild(popupInput);
-      popup.appendChild(popupOutput);
-      popup.classList.add('popup');
-      main.appendChild(popup);
-
-      break;
-    default:
-      break;
-  }
+  if (select.value === '2') openLettersCheck();
 });
+
+// ================ CHECKING LETTERS
+// Physical letters in stock: a word can only be assembled from these
+const STOCK_LETTERS = [
+  'е', 'е', 'е', 'е', 'е', 'н', 'н', 'н', 'я', 'я', 'я', 'м', 'м', 'м', 'б', 'т', 'т',
+  'а', 'а', 'а', 'з', 'и', 'и', 'и', 'д', 'д', 'д', 'х', 'в', 'в', 'ы', 'ч', 'к', 'к',
+  'л', 'л', 'о', 'о', 'с', 'с', 'р', 'р', 'п', 'п', 'э', 'ж', 'ю', 'ш',
+];
+
+// Takes letters from the stock one by one; extra copies of a letter end up in "missing"
+function findLetters(word) {
+  const left = [...STOCK_LETTERS];
+  const found = [];
+  const missing = [];
+  word
+    .toLowerCase()
+    .split('')
+    .filter((ch) => ch.trim())
+    .forEach((ch) => {
+      const i = left.indexOf(ch);
+      if (i >= 0) {
+        found.push(ch);
+        left.splice(i, 1);
+      } else {
+        missing.push(ch);
+      }
+    });
+  return { found, missing };
+}
+
+function lettersEl(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+function openLettersCheck() {
+  if (document.querySelector('.letters-overlay')) return;
+
+  const overlay = lettersEl('div', 'letters-overlay');
+  const modal = lettersEl('div', 'letters-modal');
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'lettersTitle');
+
+  const header = lettersEl('div', 'letters-header');
+  const title = lettersEl('h2', 'letters-title', 'Checking letters');
+  title.id = 'lettersTitle';
+  const closeBtn = lettersEl('button', 'letters-close', '✕');
+  closeBtn.type = 'button';
+  closeBtn.setAttribute('aria-label', 'Close');
+  header.append(title, closeBtn);
+
+  const field = lettersEl('input', 'letters-input');
+  field.type = 'text';
+  field.placeholder = 'Type a word…';
+  field.setAttribute('aria-label', 'Word to check');
+
+  const summary = lettersEl('p', 'letters-summary');
+  const foundGroup = lettersEl('div', 'letters-group');
+  const missingGroup = lettersEl('div', 'letters-group letters-group--missing');
+
+  function renderGroup(group, label, letters, keyClass) {
+    const head = lettersEl('div', 'letters-group__head');
+    head.append(lettersEl('span', 'letters-group__label', label), lettersEl('span', 'letters-badge', String(letters.length)));
+    const list = lettersEl('div', 'letters-list');
+    letters.forEach((ch) => list.appendChild(lettersEl('span', 'letters-key ' + keyClass, ch)));
+    if (!letters.length) list.appendChild(lettersEl('span', 'letters-empty', '—'));
+    group.replaceChildren(head, list);
+  }
+
+  function render() {
+    const { found, missing } = findLetters(field.value);
+    const total = found.length + missing.length;
+    if (!total) {
+      summary.textContent = 'Type a word to see which letters are in stock';
+      summary.className = 'letters-summary';
+      foundGroup.hidden = true;
+      missingGroup.hidden = true;
+      return;
+    }
+    summary.textContent = missing.length
+      ? `${found.length} of ${total} letters in stock`
+      : `All ${total} letters are in stock`;
+    summary.className = 'letters-summary ' + (missing.length ? 'is-missing' : 'is-ok');
+    foundGroup.hidden = false;
+    missingGroup.hidden = false;
+    renderGroup(foundGroup, 'In stock', found, 'letters-key--found');
+    renderGroup(missingGroup, 'Missing', missing, 'letters-key--missing');
+  }
+
+  // Closing plays the same fade/scale animation backwards, then removes the dialog
+  function close() {
+    if (overlay.classList.contains('is-closing')) return;
+    overlay.classList.add('is-closing');
+    const done = () => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      select.value = '1';
+      input.focus();
+    };
+    overlay.addEventListener('animationend', (e) => e.target === overlay && done());
+    setTimeout(() => overlay.isConnected && done(), 400); // fallback if animations are off
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') close();
+  }
+
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => e.target === overlay && close());
+  document.addEventListener('keydown', onKey);
+  field.addEventListener('input', render);
+
+  modal.append(header, field, summary, foundGroup, missingGroup);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  render();
+  setTimeout(() => field.focus(), 50);
+}
 
 doublePyro.addEventListener('change', () => {
   if (!doublePyro.hasAttribute('checked')) {
