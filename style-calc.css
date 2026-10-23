@@ -61,6 +61,39 @@ html {
   opacity: 0.95;
 }
 
+/* Clear ✕ inside the main input: same round button as the close button of the letters dialog */
+.input-wrap {
+  position: relative;
+}
+.input-wrap .container__input {
+  padding-right: 3.5rem;
+}
+.input-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-top: -1.125rem;
+  border: none;
+  border-radius: 50%;
+  color: var(--main-text-color);
+  background-color: var(--secondary-color);
+  box-shadow: 0 0 4px 2px rgba(122, 122, 122, 0.8);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+.input-clear[hidden] {
+  display: none;
+}
+.input-clear:hover,
+.input-clear:focus-visible {
+  background-color: red;
+  transform: rotate(90deg);
+  outline: none;
+}
+
 .container__input {
   margin: 0 auto;
   padding: 20px 10px;

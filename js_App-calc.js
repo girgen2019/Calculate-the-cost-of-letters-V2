@@ -343,8 +343,18 @@ function addHeart() {
 
 function onInput() {
   // By id, not "the first input on the page": the header has a date input before it
-  checkString(document.getElementById('input').value.trim());
+  const text = document.getElementById('input').value;
+  document.getElementById('inputClear').hidden = !text;
+  checkString(text.trim());
 }
+
+// ✕ in the input: removes the whole inscription and resets the result
+document.getElementById('inputClear').addEventListener('click', () => {
+  const field = document.getElementById('input');
+  field.value = '';
+  onInput();
+  field.focus();
+});
 
 input.addEventListener('input', onInput);
 heartClick.addEventListener('click', addHeart);
