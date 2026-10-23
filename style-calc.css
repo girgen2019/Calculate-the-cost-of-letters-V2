@@ -452,17 +452,6 @@ img:hover {
   }
 }
 @media screen and (max-width: 508px) {
-  /* Phone: the mode switch gets its own full-width row under the heart and checkboxes */
-  .container__controls {
-    flex-wrap: wrap;
-    row-gap: 0.75rem;
-  }
-  .mode-switch {
-    flex: 1 0 100%;
-  }
-  .mode-switch__btn {
-    padding: 0.55rem 1rem;
-  }
   .letters-modal {
     padding: 1rem 1rem 1.25rem;
   }
@@ -621,6 +610,10 @@ img:hover {
 
 /* Very small phones (320 px): tighter chips, no calendar emoji */
 @media screen and (max-width: 359px) {
+  .mode-switch__btn {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.68rem;
+  }
   .topbar {
     gap: 0.35rem;
     padding: 0.5rem 0.3rem;
@@ -632,5 +625,36 @@ img:hover {
   }
   .weather__when > span[aria-hidden] {
     display: none;
+  }
+}
+
+/* Narrow screens (same 820 px breakpoint as the compact header): heart, two checkboxes and a
+   compact Price / Letters switch fit in one row. Even gaps instead of the large right margins;
+   placed last so it wins over older rules. */
+@media screen and (max-width: 820px) {
+  .container__controls {
+    gap: 0.75rem;
+  }
+  .mode-switch {
+    margin-left: auto;
+  }
+  .mode-switch__btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  .heart__controls {
+    margin: 0;
+  }
+  .container__controls .container__Label {
+    margin-right: 0;
+  }
+}
+@media screen and (max-width: 359px) {
+  .container__controls {
+    gap: 0.5rem;
+  }
+  .heart__controls {
+    width: 40px;
+    height: 40px;
   }
 }
