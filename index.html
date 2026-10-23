@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Montserrat:wght@100;200;300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style-calc.css?v=20261023">
+    <link rel="stylesheet" href="style-calc.css?v=20261023-2">
     <title>Сalculator</title>
     <link rel="icon" type="image/x-icon" href="./assets/calculator-fav.png">
 </head>
@@ -59,14 +59,11 @@
                     <input type="checkbox" id="double">
                     <span class="checkmark"></span>
                 </label>
-                <label for="options" class="container__Label">Options
-
-                    <select class="selectbox" name="options" id="selectbox" selected="selected">
-                        <option value="1">Default</option>
-                        <option value="2">Checking letters</option>
-                        <!-- <option value="3">Add sum</option> -->
-                    </select>
-                </label>
+                <!-- Mode switch: Price = the calculator, Letters = opens the letters check -->
+                <div class="mode-switch" role="group" aria-label="Mode" data-active="price">
+                    <button type="button" class="mode-switch__btn" data-mode="price" aria-pressed="true">Price</button>
+                    <button type="button" class="mode-switch__btn" data-mode="letters" aria-pressed="false">Letters</button>
+                </div>
             </div>
         </div>
         <!-- Output -->
@@ -78,7 +75,7 @@
             </div>
         </div>
     </main>
-    <script src="./js_App-calc.js?v=20261023"></script>
+    <script src="./js_App-calc.js?v=20261023-2"></script>
 
 </body>
 

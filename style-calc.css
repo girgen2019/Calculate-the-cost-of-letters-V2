@@ -223,18 +223,59 @@ img:hover {
   display: none;
 }
 
-select {
-  padding: 0.25em;
-  width: 5rem;
-  /* border: 0; */
-  border-bottom: 2px solid currentcolor;
-  font-weight: bold;
-  /* letter-spacing: 0.15em; */
-  border-radius: 0;
-  &:focus,
-  &:active {
-    outline: 0;
-    border-bottom-color: #171e28;
+/* Mode switch "Price | Letters": two equal halves, a red thumb slides under the active one */
+.mode-switch {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  flex: none;
+  padding: 3px;
+  border-radius: 999px;
+  background-color: var(--secondary-color);
+  box-shadow: 0 0 4px 2px rgba(122, 122, 122, 0.8);
+}
+.mode-switch::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 999px;
+  background-color: red;
+  transition: transform 0.25s ease;
+}
+.mode-switch[data-active='letters']::before {
+  transform: translateX(100%);
+}
+.mode-switch__btn {
+  position: relative; /* above the thumb */
+  z-index: 1;
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #b8bec6;
+  font-family: var(--primary-font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+.mode-switch__btn[aria-pressed='true'] {
+  color: #fff;
+}
+.mode-switch__btn:hover {
+  color: var(--main-text-color);
+}
+.mode-switch__btn:focus-visible {
+  outline: 2px solid var(--main-text-color);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mode-switch::before,
+  .mode-switch__btn {
+    transition: none;
   }
 }
 
@@ -411,6 +452,17 @@ select {
   }
 }
 @media screen and (max-width: 508px) {
+  /* Phone: the mode switch gets its own full-width row under the heart and checkboxes */
+  .container__controls {
+    flex-wrap: wrap;
+    row-gap: 0.75rem;
+  }
+  .mode-switch {
+    flex: 1 0 100%;
+  }
+  .mode-switch__btn {
+    padding: 0.55rem 1rem;
+  }
   .letters-modal {
     padding: 1rem 1rem 1.25rem;
   }

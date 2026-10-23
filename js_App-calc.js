@@ -22,10 +22,21 @@ totalSumUSD_YESPyroBolt.classList.add('newClass');
 let heartClick = document.getElementById('heart');
 const heartCharCode = String.fromCharCode(10084);
 
-const select = document.getElementById('selectbox');
-select.addEventListener('change', () => {
-  if (select.value === '2') openLettersCheck();
-});
+// ================ MODE SWITCH: Price | Letters
+const modeSwitch = document.querySelector('.mode-switch');
+const modeButtons = modeSwitch.querySelectorAll('.mode-switch__btn');
+
+function setMode(mode) {
+  modeSwitch.dataset.active = mode; // moves the red thumb (CSS)
+  modeButtons.forEach((btn) => btn.setAttribute('aria-pressed', String(btn.dataset.mode === mode)));
+}
+
+modeButtons.forEach((btn) =>
+  btn.addEventListener('click', () => {
+    setMode(btn.dataset.mode);
+    if (btn.dataset.mode === 'letters') openLettersCheck();
+  })
+);
 
 // ================ CHECKING LETTERS
 // Physical letters in stock: a word can only be assembled from these
@@ -125,7 +136,7 @@ function openLettersCheck() {
     const done = () => {
       overlay.remove();
       document.removeEventListener('keydown', onKey);
-      select.value = '1';
+      setMode('price');
       input.focus();
     };
     overlay.addEventListener('animationend', (e) => e.target === overlay && done());
