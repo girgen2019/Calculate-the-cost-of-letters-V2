@@ -180,18 +180,16 @@ function getResult(chars, usdNo, usdYes, bynNo, bynYes, counts) {
   );
 }
 
-// The same formula as prepareResult, split into lines:
-// (letters * 15 + hearts * 25 - 30) / 2 + 30 = letters * 7.5 + hearts * 12.5 + 15
+// What the viewer sees: price-list items, options and the totals.
+// The internal steps of the formula in prepareResult (the 30 USD threshold and rounding up)
+// stay under the hood and are not shown as separate lines.
 function breakdownRows({ letters, hearts }, venue, totalNo, totalYes) {
   const fountains = addDoubleFountain();
-  const subtotal = letters * 7.5 + hearts * 12.5 + 15 + fountains;
-  const rounding = Math.ceil(subtotal) - subtotal;
   const pyro = (letters + hearts) * 8;
-  const rows = [[`Letters ${letters} × 7.5`, letters * 7.5]];
-  if (hearts) rows.push([`Hearts ${hearts} × 12.5`, hearts * 12.5]);
-  rows.push(['Base', 15]);
+  const rows = [];
+  if (letters) rows.push([`Letters ${letters} × 15`, letters * 15]);
+  if (hearts) rows.push([`Hearts ${hearts} × 25`, hearts * 25]);
   if (fountains) rows.push(['Double fountains', fountains]);
-  if (rounding) rows.push(['Rounded up', rounding]);
   if (venue) rows.push(['Robinson club', venue]);
   rows.push(['Without pyrotechnics', totalNo, 'total']);
   rows.push([`Pyrotechnics ${letters + hearts} × 8`, pyro]);

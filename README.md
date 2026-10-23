@@ -10,8 +10,8 @@ hearts) for events — and checks whether the inscription can be assembled from 
 ## Features
 
 - **Instant price** while typing, in the same style as the letters check: two price cards (without / with
-  pyrotechnics, USD and BYN), a collapsible **price breakdown** (letters, hearts, base, options, rounding,
-  pyrotechnics), the whole inscription, the number of units (letters + hearts) and the letters as tiles.
+  pyrotechnics, USD and BYN), a collapsible **price breakdown** (letters × 15, hearts × 25, options,
+  pyrotechnics; internal steps such as rounding are not shown), the whole inscription, the number of units (letters + hearts) and the letters as tiles.
   The result block fits the window; on short screens only the inscription part scrolls.
 - **Two prices at once:** without pyrotechnics and with pyrotechnics, in **USD and BYN**.
 - **Live exchange rate:** the official USD rate is loaded from the National Bank of Belarus API
