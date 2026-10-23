@@ -3,22 +3,6 @@ let USD_RATES;
 let defaultPlace = document.getElementById('robinson');
 let defaultPlaceFocus = document.querySelector('.container__controls');
 let doublePyro = document.getElementById('double');
-let spanInput = document.createElement('span');
-let outputStringConsist = document.createElement('div');
-let outputSimpleString = document.createElement('b');
-let lengthOutputString = document.createElement('div');
-let lengthOutputStringBolt = document.createElement('b');
-let totalSumUSD_NOPyro = document.createElement('div');
-let totalSumUSD_NOPyroBolt = document.createElement('b');
-let totalSumUSD_YESPyro = document.createElement('div');
-let totalSumUSD_YESPyroBolt = document.createElement('b');
-spanInput.classList.add('newClass');
-outputSimpleString.classList.add('newClass');
-lengthOutputStringBolt.classList.add('newClass');
-totalSumUSD_NOPyro.classList.add('sumUSD');
-totalSumUSD_NOPyroBolt.classList.add('newClass');
-totalSumUSD_YESPyro.classList.add('sumUSD');
-totalSumUSD_YESPyroBolt.classList.add('newClass');
 let heartClick = document.getElementById('heart');
 const heartCharCode = String.fromCharCode(10084);
 
@@ -181,44 +165,116 @@ defaultPlace.addEventListener('click', () => {
   }
 });
 
-function getResult(
-  checkedString,
-  prepareResultsNoUSD,
-  prepareResultsYesUSD,
-  prepareResultsNoBYN,
-  prepareResultsYesBYN
-) {
-  outputSimpleString.textContent = checkedString;
-  lengthOutputStringBolt.textContent =
-    checkedString.length > 1
-      ? checkedString.length + ' units'
-      : checkedString.length + ' unit';
-  // Without a rate (API unavailable) show that BYN is unknown instead of "NaN BYN"
-  const TOTAL_SUM_NoPyrotechnicsBYN = USD_RATES
-    ? prepareResultsNoBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN'
-    : 'BYN n/a';
-  const TOTAL_SUM_YesPyrotechnicsBYN = USD_RATES
-    ? prepareResultsYesBYN + Math.round(addFiveBaks() * USD_RATES) + ' BYN'
-    : 'BYN n/a';
-  totalSumUSD_NOPyroBolt.textContent =
-    prepareResultsNoUSD +
-    addFiveBaks() +
-    ' usd / ' +
-    TOTAL_SUM_NoPyrotechnicsBYN;
-  totalSumUSD_YESPyroBolt.textContent =
-    prepareResultsYesUSD +
-    addFiveBaks() +
-    ' usd / ' +
-    TOTAL_SUM_YesPyrotechnicsBYN;
-  defaultPlace.addEventListener('click', addFiveBaks);
-  outputStringConsist.textContent = `String consist of --- `;
-  lengthOutputString.textContent = `Length of string --- `;
-  totalSumUSD_NOPyro.textContent = `Total amount ${'NO pyrotechnics'.toUpperCase()}  --- `;
-  lengthOutputString.appendChild(lengthOutputStringBolt);
-  totalSumUSD_NOPyro.appendChild(totalSumUSD_NOPyroBolt);
-  totalSumUSD_YESPyro.textContent = `Total amount ${'YES pyrotechnics'.toUpperCase()}  --- `;
-  totalSumUSD_YESPyro.appendChild(totalSumUSD_YESPyroBolt);
+// Shows the two prices as cards, the price breakdown, the whole inscription and its letter tiles
+function getResult(chars, usdNo, usdYes, bynNo, bynYes, counts) {
+  const venue = addFiveBaks();
+  // BYN keeps the original rounding: rounded-up base + rounded venue surcharge; unknown without a rate
+  const byn = (base) => (USD_RATES ? base + Math.round(venue * USD_RATES) : null);
+  renderResult(
+    chars.map((ch) => ch.trim()),
+    [
+      { label: 'Without pyrotechnics', usd: usdNo + venue, byn: byn(bynNo) },
+      { label: 'With pyrotechnics', usd: usdYes + venue, byn: byn(bynYes), accent: true },
+    ],
+    breakdownRows(counts, venue, usdNo + venue, usdYes + venue)
+  );
 }
+
+// The same formula as prepareResult, split into lines:
+// (letters * 15 + hearts * 25 - 30) / 2 + 30 = letters * 7.5 + hearts * 12.5 + 15
+function breakdownRows({ letters, hearts }, venue, totalNo, totalYes) {
+  const fountains = addDoubleFountain();
+  const subtotal = letters * 7.5 + hearts * 12.5 + 15 + fountains;
+  const rounding = Math.ceil(subtotal) - subtotal;
+  const pyro = (letters + hearts) * 8;
+  const rows = [[`Letters ${letters} × 7.5`, letters * 7.5]];
+  if (hearts) rows.push([`Hearts ${hearts} × 12.5`, hearts * 12.5]);
+  rows.push(['Base', 15]);
+  if (fountains) rows.push(['Double fountains', fountains]);
+  if (rounding) rows.push(['Rounded up', rounding]);
+  if (venue) rows.push(['Robinson club', venue]);
+  rows.push(['Without pyrotechnics', totalNo, 'total']);
+  rows.push([`Pyrotechnics ${letters + hearts} × 8`, pyro]);
+  rows.push(['With pyrotechnics', totalYes, 'total accent']);
+  return rows;
+}
+
+const formatUsd = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+// Breakdown open/closed: open on tall screens by default, then the viewer's choice is kept
+let breakdownOpen = null;
+
+function renderResult(chars, prices, rows) {
+  const output = document.getElementById('output');
+  if (!chars.length) {
+    output.replaceChildren(lettersEl('p', 'result__empty', 'Type an inscription to see the price'));
+    fitResult();
+    return;
+  }
+
+  const cards = lettersEl('div', 'result__prices');
+  prices.forEach((p) => {
+    const card = lettersEl('div', 'price-card' + (p.accent ? ' price-card--accent' : ''));
+    const usd = lettersEl('div', 'price-card__usd');
+    usd.append(lettersEl('b', '', String(p.usd)), lettersEl('span', '', ' USD'));
+    card.append(
+      lettersEl('div', 'price-card__label', p.label),
+      usd,
+      lettersEl('div', 'price-card__byn', p.byn === null ? 'BYN n/a' : p.byn + ' BYN')
+    );
+    cards.appendChild(card);
+  });
+
+  const details = lettersEl('details', 'breakdown');
+  if (breakdownOpen === null) breakdownOpen = window.innerHeight >= 900;
+  details.open = breakdownOpen;
+  details.addEventListener('toggle', () => {
+    breakdownOpen = details.open;
+    fitResult();
+  });
+  details.appendChild(lettersEl('summary', 'breakdown__summary', 'Price breakdown'));
+  const table = lettersEl('div', 'breakdown__rows');
+  rows.forEach(([label, usd, kind]) => {
+    const row = lettersEl('div', 'breakdown__row' + (kind ? ' ' + kind.split(' ').map((k) => 'breakdown__row--' + k).join(' ') : ''));
+    row.append(lettersEl('span', '', label), lettersEl('span', 'breakdown__usd', (kind ? '' : '+ ') + formatUsd(usd) + ' USD'));
+    table.appendChild(row);
+  });
+  details.appendChild(table);
+
+  const letters = chars.filter((ch) => ch !== heartCharCode).length;
+  const hearts = chars.length - letters;
+  const head = lettersEl('div', 'letters-group__head');
+  head.append(
+    lettersEl('span', 'letters-group__label', 'Inscription'),
+    lettersEl('span', 'letters-badge', chars.length + (chars.length > 1 ? ' units' : ' unit')),
+    lettersEl(
+      'span',
+      'result__counts',
+      letters + (letters === 1 ? ' letter' : ' letters') + (hearts ? ' + ' + hearts + (hearts === 1 ? ' heart' : ' hearts') : '')
+    )
+  );
+  const word = lettersEl('div', 'result__word', document.getElementById('input').value.trim());
+  const list = lettersEl('div', 'letters-list result__letters');
+  chars.forEach((ch) =>
+    list.appendChild(
+      lettersEl('span', 'letters-key ' + (ch === heartCharCode ? 'letters-key--heart' : 'letters-key--found'), ch)
+    )
+  );
+  const inscription = lettersEl('div', 'result__inscription');
+  inscription.append(head, word, list);
+
+  output.replaceChildren(cards, details, inscription);
+  fitResult();
+}
+
+// The result block takes the free height down to the bottom of the window;
+// only the letter tiles scroll, so the prices always stay visible
+function fitResult() {
+  const output = document.getElementById('output');
+  const free = window.innerHeight - output.getBoundingClientRect().top - 16;
+  // Too little room (phone in landscape): no limit, the page scrolls instead (see CSS max-height: 520px)
+  output.style.maxHeight = free >= 260 ? free + 'px' : '';
+}
+window.addEventListener('resize', fitResult);
 
 function prepareResult(array) {
   let sumHearts = array.filter((hearts) => {
@@ -247,7 +303,8 @@ function prepareResult(array) {
     resultNoPyrotechnics,
     resultWithPyrotechnics,
     resultNoPyrotechnicsBYN,
-    resultWithPyrotechnicsBYN
+    resultWithPyrotechnicsBYN,
+    { letters: sumLetters, hearts: sumHearts }
   );
 }
 
@@ -286,43 +343,12 @@ function addHeart() {
 
 function onInput() {
   // By id, not "the first input on the page": the header has a date input before it
-  let input = document.getElementById('input');
-  let output = document.getElementById('output');
-  let sliceHidden = document.querySelector('.output_container');
-  let inputString = '';
-  console.dir(input);
-
-  spanInput.textContent = input.value;
-  inputString += input.value.trim();
-  checkString(inputString);
-
-  if (inputString.length < 1) {
-    totalSumUSD_NOPyro.classList.remove('sumUSD');
-    totalSumUSD_NOPyroBolt.classList.remove('newClass');
-    totalSumUSD_YESPyro.classList.remove('sumUSD');
-    totalSumUSD_YESPyroBolt.classList.remove('newClass');
-    lengthOutputStringBolt.classList.remove('newClass');
-    output.classList.add('container__out-hidden');
-    // sliceHidden.textContent = "it isn't written yet...";
-  } else if (inputString.length >= 1) {
-    totalSumUSD_NOPyro.classList.add('sumUSD');
-    totalSumUSD_NOPyroBolt.classList.add('newClass');
-    totalSumUSD_YESPyro.classList.add('sumUSD');
-    totalSumUSD_YESPyroBolt.classList.add('newClass');
-    lengthOutputStringBolt.classList.add('newClass');
-    output.classList.remove('container__out-hidden');
-  }
-
-  output.appendChild(spanInput);
-  output.appendChild(outputStringConsist);
-  output.appendChild(outputSimpleString);
-  output.appendChild(lengthOutputString);
-  output.appendChild(totalSumUSD_NOPyro);
-  output.appendChild(totalSumUSD_YESPyro);
+  checkString(document.getElementById('input').value.trim());
 }
 
 input.addEventListener('input', onInput);
 heartClick.addEventListener('click', addHeart);
+onInput(); // first render: the empty-state hint
 defaultPlaceFocus.addEventListener('fullscreenchange', () => {
   input.focus();
 });
@@ -373,6 +399,7 @@ function chipPart(tag, className, text) {
 function fitUnderHeader() {
   const header = document.querySelector('.topbar');
   document.querySelector('.main').style.paddingTop = header.offsetHeight + 12 + 'px';
+  fitResult();
 }
 window.addEventListener('resize', fitUnderHeader);
 fitUnderHeader();
