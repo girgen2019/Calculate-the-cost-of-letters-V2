@@ -186,9 +186,13 @@ function getResult(chars, usdNo, usdYes, bynNo, bynYes, counts) {
 function breakdownRows({ letters, hearts }, venue, totalNo, totalYes) {
   const fountains = addDoubleFountain();
   const pyro = (letters + hearts) * 8;
-  const rows = [];
-  if (letters) rows.push([`Letters ${letters} × 15`, letters * 15]);
-  if (hearts) rows.push([`Hearts ${hearts} × 25`, hearts * 25]);
+  // One line for the inscription with the discount (and rounding) already applied:
+  // it is whatever the formula gives without the options, so the lines always add up to the totals
+  const inscription = totalNo - venue - fountains;
+  const label =
+    [letters ? `Letters ${letters}` : '', hearts ? `Hearts ${hearts}` : ''].filter(Boolean).join(' + ') +
+    ' (discount applied)';
+  const rows = [[label, inscription]];
   if (fountains) rows.push(['Double fountains', fountains]);
   if (venue) rows.push(['Robinson club', venue]);
   rows.push(['Without pyrotechnics', totalNo, 'total']);

@@ -814,6 +814,13 @@ img:hover {
 .breakdown__row--total:not(.breakdown__row--accent) .breakdown__usd {
   color: #7ee08a;
 }
+/* The total rows' labels take the colour of their sum and card frame */
+.breakdown__row--total:not(.breakdown__row--accent) > span:first-child {
+  color: #7ee08a;
+}
+.breakdown__row--accent > span:first-child {
+  color: red;
+}
 .result__counts {
   color: var(--sub-text-color);
   font-size: 0.8rem;
