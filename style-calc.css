@@ -61,50 +61,71 @@ html {
   opacity: 0.95;
 }
 
-/* Clear ✕ inside the main input: same round button as the close button of the letters dialog */
+/* ✕ Clear and ➤ Send inside the main input: line icons, no glow; Send is the green accent action */
 .input-wrap {
   position: relative;
 }
 .input-wrap .container__input {
-  padding-right: 3.5rem;
+  padding-right: 3.75rem;
 }
-.input-clear {
+.input-btn {
   position: absolute;
   top: 50%;
   right: 0.9rem;
-  width: 2.25rem;
-  height: 2.25rem;
-  margin-top: -1.125rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-top: -1.25rem;
+  padding: 0;
   border: none;
   border-radius: 50%;
-  color: var(--main-text-color);
-  background-color: var(--secondary-color);
-  box-shadow: 0 0 4px 2px rgba(122, 122, 122, 0.8);
-  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
 }
-.input-clear[hidden] {
+.input-btn[hidden] {
   display: none;
 }
-/* ➤ "Send to Telegram": same round button, left of ✕ */
-.input-send {
-  right: 3.6rem;
+.input-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.input-send:hover,
-.input-send:focus-visible {
-  background-color: #7ee08a;
+.input-btn:focus-visible {
+  outline: 2px solid var(--main-text-color);
+  outline-offset: 2px;
+}
+/* ✕: quiet grey, turns red on hover */
+.input-clear {
+  color: var(--sub-text-color);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.input-clear:hover {
+  color: var(--main-text-color);
+  background-color: rgba(255, 0, 0, 0.8);
+  transform: rotate(90deg);
+}
+/* ➤: green like the Send button in the dialog; when it is shown, ✕ moves to its left */
+.input-send {
   color: var(--primary-color);
-  transform: none;
+  background-color: #7ee08a;
+}
+.input-send svg {
+  margin: 2px 2px 0 0;
+}
+.input-send:hover {
+  background-color: #9deba6;
+  transform: scale(1.08);
+}
+.input-wrap:has(.input-send:not([hidden])) .input-clear {
+  right: 3.9rem;
 }
 .input-wrap:has(.input-send:not([hidden])) .container__input {
-  padding-right: 6.3rem;
-}
-.input-clear:hover,
-.input-clear:focus-visible {
-  background-color: red;
-  transform: rotate(90deg);
-  outline: none;
+  padding-right: 6.9rem;
 }
 
 .container__input {

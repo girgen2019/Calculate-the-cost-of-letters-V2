@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Montserrat:wght@100;200;300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style-calc.css?v=20261030b">
+    <link rel="stylesheet" href="style-calc.css?v=20261030c">
     <title>Сalculator</title>
     <link rel="icon" type="image/x-icon" href="./assets/calculator-fav.png">
 </head>
@@ -41,9 +41,13 @@
         <div class="container input-wrap">
             <input class="container__input" id="input" type="text" placeholder="Enter text..." autofocus>
             <!-- Clears the inscription and the result; shown only when there is text -->
-            <button type="button" class="input-clear" id="inputClear" aria-label="Clear" hidden>✕</button>
+            <button type="button" class="input-btn input-clear" id="inputClear" aria-label="Clear" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
             <!-- Sends the inscription, prices and event date to Telegram; shown only when the relay is configured -->
-            <button type="button" class="input-clear input-send" id="inputSend" aria-label="Send to Telegram" hidden>➤</button>
+            <button type="button" class="input-btn input-send" id="inputSend" aria-label="Send to Telegram" title="Send to Telegram" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg>
+            </button>
 
         </div>
         <!-- Controls -->
@@ -78,7 +82,7 @@
             </div>
         </div>
     </main>
-    <script src="./js_App-calc.js?v=20261030b"></script>
+    <script src="./js_App-calc.js?v=20261030c"></script>
 
 </body>
 
