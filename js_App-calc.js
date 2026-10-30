@@ -394,6 +394,59 @@ function weatherFor(date) {
   )}°C, wind ${Math.round(forecast.wind_speed_10m_max[i])} km/h`;
 }
 
+// text/plain: a "simple" request, so the browser sends no CORS preflight that Apps Script can't answer
+async function postToRelay(body) {
+  const res = await fetch(TELEGRAM_RELAY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+const readAsBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = () => reject(new Error('could not read the file'));
+    reader.readAsDataURL(file);
+  });
+
+// Small pill at the bottom of the page: "🎵 Uploading track…" -> "✅ Track sent" / "❌ …"
+function showUploadToast(text, state) {
+  let toast = document.querySelector('.send-toast');
+  if (!toast) {
+    toast = lettersEl('div', 'send-toast');
+    toast.setAttribute('role', 'status');
+    document.body.appendChild(toast);
+  }
+  clearTimeout(toast.hideTimer);
+  toast.textContent = text;
+  toast.className = 'send-toast' + (state ? ' is-' + state : '');
+  if (state) toast.hideTimer = setTimeout(() => toast.remove(), state === 'ok' ? 4000 : 9000);
+}
+
+// Uploads the attached file after the request; the page warns before closing while it is in progress
+async function uploadInBackground(request, file) {
+  const what = file.type.startsWith('image/') ? 'Picture' : 'Track';
+  const warn = (e) => {
+    e.preventDefault();
+    e.returnValue = '';
+  };
+  window.addEventListener('beforeunload', warn);
+  showUploadToast(`🎵 Uploading ${what.toLowerCase()} to Telegram…`);
+  try {
+    const data = await readAsBase64(file);
+    const result = await postToRelay({ ...request, file: { name: file.name, type: file.type, data } });
+    if (!result.ok) throw new Error(result.error || 'not accepted');
+    showUploadToast(`✅ ${what} sent to Telegram`, 'ok');
+  } catch (err) {
+    showUploadToast(`❌ ${what} not sent: ` + (err.message === 'Failed to fetch' ? 'no connection' : err.message), 'error');
+  } finally {
+    window.removeEventListener('beforeunload', warn);
+  }
+}
+
 // File name -> track name: no extension, no download ids / hashes, no underscores
 function trackName(fileName) {
   return fileName
@@ -520,14 +573,6 @@ function openSendDialog() {
     if (kind === 'audio' && !musicInput.value.trim()) musicInput.value = trackName(file.name);
   }
 
-  const readAsBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result).split(',')[1]);
-      reader.onerror = () => reject(new Error('could not read the file'));
-      reader.readAsDataURL(file);
-    });
-
   const weatherLine = lettersEl('p', 'letters-summary send-weather');
   // Invisible to people; simple bots fill every field, the relay ignores such requests
   const honeypot = lettersEl('input', 'send-honeypot');
@@ -585,53 +630,37 @@ function openSendDialog() {
     }
     overlay.dataset.busy = '1';
     refresh();
-    sendBtn.textContent = attachment ? 'Uploading…' : 'Sending…';
+    sendBtn.textContent = 'Sending…';
     status.textContent = '';
+    const request = {
+      inscription,
+      eventDate: dateInput.value,
+      counts: quote.counts,
+      usdNo: quote.usdNo,
+      usdYes: quote.usdYes,
+      bynNo: quote.bynNo,
+      bynYes: quote.bynYes,
+      robinson: defaultPlace.checked,
+      fountains: doublePyro.checked,
+      rate: USD_RATES || null,
+      rateDate,
+      weather: weatherFor(dateInput.value),
+      music: musicInput.value.trim(),
+      website: honeypot.value,
+    };
     try {
-      const file = attachment
-        ? { name: attachment.name, type: attachment.type, data: await readAsBase64(attachment) }
-        : null;
-      // text/plain: a "simple" request, so the browser sends no CORS preflight that Apps Script can't answer
-      const res = await fetch(TELEGRAM_RELAY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          inscription,
-          eventDate: dateInput.value,
-          counts: quote.counts,
-          usdNo: quote.usdNo,
-          usdYes: quote.usdYes,
-          bynNo: quote.bynNo,
-          bynYes: quote.bynYes,
-          robinson: defaultPlace.checked,
-          fountains: doublePyro.checked,
-          rate: USD_RATES || null,
-          rateDate,
-          weather: weatherFor(dateInput.value),
-          music: musicInput.value.trim(),
-          file,
-          website: honeypot.value,
-        }),
-      });
-      const result = await res.json();
+      // The request goes alone and fast; a track or picture is uploaded afterwards in the background
+      const result = await postToRelay(request);
       if (!result.ok) throw new Error(result.error || 'Not sent');
       try {
         localStorage.setItem('lastSendAt', String(Date.now()));
       } catch (e) {
         // ignore
       }
-      // The request went through, but the file can still be refused by Telegram (e.g. wrong format)
-      if (result.fileError) {
-        status.textContent = '✅ Sent, but the file was not: ' + result.fileError;
-        status.className = 'send-status is-error';
-        overlay.dataset.busy = '';
-        sendBtn.textContent = 'Send ➤';
-        refresh();
-        return;
-      }
       status.textContent = '✅ Sent to Telegram';
       status.className = 'send-status is-ok';
-      setTimeout(close, 1500);
+      if (attachment) uploadInBackground({ ...request, kind: 'file' }, attachment);
+      setTimeout(close, attachment ? 700 : 1500);
     } catch (err) {
       status.textContent = '❌ Not sent: ' + (err.message === 'Failed to fetch' ? 'no connection' : err.message);
       status.className = 'send-status is-error';

@@ -12,8 +12,8 @@
  * Setup steps are in telegram-relay/README.md.
  */
 
-var RELAY_VERSION = 4;       // shown when the web app URL is opened: tells which code is deployed
-var MAX_PER_HOUR = 30;      // all requests together: protects your Telegram from spam
+var RELAY_VERSION = 5;       // shown when the web app URL is opened: tells which code is deployed
+var MAX_PER_HOUR = 40;      // all requests together (a send with a track = 2 requests): protects your Telegram from spam
 var MAX_TEXT_LENGTH = 120;  // inscription length limit
 var MAX_MUSIC_LENGTH = 200; // music: track name or link
 var MAX_AUDIO_MB = 20;      // attached MP3 (the page has the same limits)
@@ -32,11 +32,17 @@ function doPost(e) {
 
     if (!takeRateLimit()) return reply({ ok: false, error: 'Too many requests, try again later' });
 
+    // Second request from the page: the attached track or picture, uploaded in the background
+    // after the request message, so the person does not wait for a big file
+    if (data.kind === 'file') {
+      if (!data.file) return reply({ ok: false, error: 'No file' });
+      var caption = (data.music ? '🎵 ' + data.music + '\n' : '') + '✍️ ' + data.inscription + ' · ' + formatDate(data.eventDate);
+      var fileError = sendFileToAll(data.file, caption, data.music);
+      return reply({ ok: !fileError, error: fileError || undefined });
+    }
+
     var result = sendToAll(formatMessage(data));
-    if (!result.sent) return reply({ ok: false, sent: 0, error: result.error });
-    // The request itself is delivered; an attached track or picture follows it as a separate message
-    var fileError = data.file ? sendFileToAll(data.file, (data.music ? '🎵 ' + data.music + '\n' : '') + '✍️ ' + data.inscription + ' · ' + formatDate(data.eventDate), data.music) : '';
-    return reply({ ok: true, sent: result.sent, fileError: fileError || undefined });
+    return reply({ ok: result.sent > 0, sent: result.sent, error: result.sent > 0 ? undefined : result.error });
   } catch (err) {
     return reply({ ok: false, error: 'Bad request' });
   }
