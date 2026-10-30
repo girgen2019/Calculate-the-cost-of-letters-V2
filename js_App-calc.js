@@ -439,7 +439,7 @@ async function uploadInBackground(request, file) {
     const data = await readAsBase64(file);
     const result = await postToRelay({ ...request, file: { name: file.name, type: file.type, data } });
     if (!result.ok) throw new Error(result.error || 'not accepted');
-    showUploadToast(`✅ ${what} sent to Telegram`, 'ok');
+    showUploadToast(`✅ ${what} added to the request in Telegram`, 'ok');
   } catch (err) {
     showUploadToast(`❌ ${what} not sent: ` + (err.message === 'Failed to fetch' ? 'no connection' : err.message), 'error');
   } finally {
@@ -659,7 +659,8 @@ function openSendDialog() {
       }
       status.textContent = '✅ Sent to Telegram';
       status.className = 'send-status is-ok';
-      if (attachment) uploadInBackground({ ...request, kind: 'file' }, attachment);
+      // replaceToken: the relay swaps the text message for the track, so the chat gets one message
+      if (attachment) uploadInBackground({ ...request, kind: 'file', replaceToken: result.replaceToken }, attachment);
       setTimeout(close, attachment ? 700 : 1500);
     } catch (err) {
       status.textContent = '❌ Not sent: ' + (err.message === 'Failed to fetch' ? 'no connection' : err.message);

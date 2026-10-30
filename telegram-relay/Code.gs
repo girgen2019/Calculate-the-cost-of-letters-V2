@@ -12,7 +12,7 @@
  * Setup steps are in telegram-relay/README.md.
  */
 
-var RELAY_VERSION = 5;       // shown when the web app URL is opened: tells which code is deployed
+var RELAY_VERSION = 6;       // shown when the web app URL is opened: tells which code is deployed
 var MAX_PER_HOUR = 40;      // all requests together (a send with a track = 2 requests): protects your Telegram from spam
 var MAX_TEXT_LENGTH = 120;  // inscription length limit
 var MAX_MUSIC_LENGTH = 200; // music: track name or link
@@ -32,17 +32,28 @@ function doPost(e) {
 
     if (!takeRateLimit()) return reply({ ok: false, error: 'Too many requests, try again later' });
 
-    // Second request from the page: the attached track or picture, uploaded in the background
-    // after the request message, so the person does not wait for a big file
+    // Second request from the page: the attached track or picture, uploaded in the background.
+    // It is sent with the whole request as its caption and the text message sent before is deleted,
+    // so the chat ends up with ONE message: the track + the request. If the file fails, the text stays.
     if (data.kind === 'file') {
       if (!data.file) return reply({ ok: false, error: 'No file' });
-      var caption = (data.music ? '🎵 ' + data.music + '\n' : '') + '✍️ ' + data.inscription + ' · ' + formatDate(data.eventDate);
-      var fileError = sendFileToAll(data.file, caption, data.music);
+      var cache = CacheService.getScriptCache();
+      var key = 'msg-' + String(data.replaceToken || '');
+      var textMessages = JSON.parse(cache.get(key) || '{}');
+      var caption = formatMessage(data);
+      // Telegram allows 1024 characters in a caption; a very long request keeps a short caption
+      if (caption.length > 1000) caption = '🔥 <b>' + esc(data.inscription) + '</b> · ' + formatDate(data.eventDate);
+      var fileError = sendFileToAll(data.file, caption, data.music, textMessages);
+      cache.remove(key);
       return reply({ ok: !fileError, error: fileError || undefined });
     }
 
     var result = sendToAll(formatMessage(data));
-    return reply({ ok: result.sent > 0, sent: result.sent, error: result.sent > 0 ? undefined : result.error });
+    if (!result.sent) return reply({ ok: false, sent: 0, error: result.error });
+    // The page gets a one-time token instead of message ids, so it can only replace its own message
+    var replaceToken = Utilities.getUuid();
+    CacheService.getScriptCache().put('msg-' + replaceToken, JSON.stringify(result.messages), 3600);
+    return reply({ ok: true, sent: result.sent, replaceToken: replaceToken });
   } catch (err) {
     return reply({ ok: false, error: 'Bad request' });
   }
@@ -122,6 +133,7 @@ function sendToAll(text) {
   if (!ids.length) return { sent: 0, error: 'CHAT_IDS is not set in Script Properties' };
   var sent = 0;
   var error = '';
+  var messages = {}; // chat id -> message id, to replace the text with the track later
   ids.forEach(function (id) {
     var res = UrlFetchApp.fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
       method: 'post',
@@ -129,18 +141,22 @@ function sendToAll(text) {
       payload: JSON.stringify({ chat_id: id, text: text, parse_mode: 'HTML' }),
       muteHttpExceptions: true,
     });
-    if (res.getResponseCode() === 200) sent++;
-    else error = telegramError(res);
+    if (res.getResponseCode() === 200) {
+      sent++;
+      messages[id] = JSON.parse(res.getContentText()).result.message_id;
+    } else error = telegramError(res);
   });
-  return { sent: sent, error: error };
+  return { sent: sent, error: error, messages: messages };
 }
 
 /**
  * Sends the attached file to every chat: an MP3 as a playable track (sendAudio), a picture as a photo
  * (sendPhoto); if Telegram refuses that format, as a plain file (sendDocument). The file is uploaded once,
- * other chats get it by Telegram's file_id. Returns '' or the reason it was not delivered.
+ * other chats get it by Telegram's file_id. When it arrives in a chat, the earlier text message of this
+ * request (textMessages: chat id -> message id) is deleted. Returns '' or the reason it was not delivered.
  */
-function sendFileToAll(file, caption, music) {
+function sendFileToAll(file, caption, music, textMessages) {
+  textMessages = textMessages || {};
   // "Shaman - Ты Моя" -> performer "Shaman", title "Ты Моя": Telegram shows them on the track
   var parts = String(music || '').split(/\s+[-–—]\s+/);
   var s = settings();
@@ -152,7 +168,9 @@ function sendFileToAll(file, caption, music) {
   var fileId = '';
   var error = '';
   s.ids.forEach(function (id) {
-    var payload = { chat_id: id, caption: caption };
+    // The text already notified the person, so the replacement comes silently
+    var extra = { caption: caption, parse_mode: 'HTML', disable_notification: String(Boolean(textMessages[id])) };
+    var payload = Object.assign({ chat_id: id }, extra);
     payload[field] = fileId || blob;
     if (field === 'audio' && parts.length > 1) {
       payload.performer = parts[0];
@@ -165,7 +183,7 @@ function sendFileToAll(file, caption, music) {
       // e.g. WAV/OGG for sendAudio or a huge picture for sendPhoto: send it as a document instead
       method = 'sendDocument';
       field = 'document';
-      payload = { chat_id: id, caption: caption, document: blob };
+      payload = Object.assign({ chat_id: id, document: blob }, extra);
       res = UrlFetchApp.fetch(api + method, { method: 'post', payload: payload, muteHttpExceptions: true });
     }
     if (res.getResponseCode() !== 200) {
@@ -175,6 +193,13 @@ function sendFileToAll(file, caption, music) {
     var msg = JSON.parse(res.getContentText()).result || {};
     var sentFile = msg.audio || msg.document || (msg.photo && msg.photo[msg.photo.length - 1]);
     if (sentFile && !fileId) fileId = sentFile.file_id;
+    if (textMessages[id]) {
+      UrlFetchApp.fetch(api + 'deleteMessage', {
+        method: 'post',
+        payload: { chat_id: id, message_id: String(textMessages[id]) },
+        muteHttpExceptions: true,
+      });
+    }
   });
   return error;
 }
