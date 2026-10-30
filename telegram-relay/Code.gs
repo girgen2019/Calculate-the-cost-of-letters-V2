@@ -15,6 +15,8 @@
 var MAX_PER_HOUR = 30;      // all requests together: protects your Telegram from spam
 var MAX_TEXT_LENGTH = 120;  // inscription length limit
 var MAX_MUSIC_LENGTH = 200; // music: track name or link
+var MAX_AUDIO_MB = 20;      // attached MP3 (the page has the same limits)
+var MAX_IMAGE_MB = 10;      // attached picture
 
 /** The calculator sends a POST with a JSON body (as text/plain, so the browser makes no CORS preflight). */
 function doPost(e) {
@@ -30,7 +32,10 @@ function doPost(e) {
     if (!takeRateLimit()) return reply({ ok: false, error: 'Too many requests, try again later' });
 
     var result = sendToAll(formatMessage(data));
-    return reply({ ok: result.sent > 0, sent: result.sent, error: result.sent > 0 ? undefined : result.error });
+    if (!result.sent) return reply({ ok: false, sent: 0, error: result.error });
+    // The request itself is delivered; an attached track or picture follows it as a separate message
+    var fileError = data.file ? sendFileToAll(data.file, '🎵 ' + data.inscription + ' · ' + formatDate(data.eventDate)) : '';
+    return reply({ ok: true, sent: result.sent, fileError: fileError || undefined });
   } catch (err) {
     return reply({ ok: false, error: 'Bad request' });
   }
@@ -49,6 +54,14 @@ function validate(d) {
   if (d.eventDate < today) return 'Event date is in the past';
   if (!isFinite(d.usdNo) || !isFinite(d.usdYes)) return 'Prices are missing';
   if (d.music && String(d.music).length > MAX_MUSIC_LENGTH) return 'Music text is too long';
+  if (d.file) {
+    var f = d.file;
+    var isImage = String(f.type).indexOf('image/') === 0;
+    if (!isImage && String(f.type).indexOf('audio/') !== 0) return 'Only audio or a picture can be attached';
+    if (typeof f.data !== 'string' || !f.data) return 'Attached file is empty';
+    // base64 is 4/3 of the file size
+    if (f.data.length * 3 / 4 > (isImage ? MAX_IMAGE_MB : MAX_AUDIO_MB) * 1024 * 1024) return 'Attached file is too big';
+  }
   return null;
 }
 
@@ -77,11 +90,27 @@ function formatMessage(d) {
   return lines.join('\n');
 }
 
+function settings() {
+  var props = PropertiesService.getScriptProperties();
+  return {
+    token: props.getProperty('BOT_TOKEN'),
+    ids: (props.getProperty('CHAT_IDS') || '').split(',').map(function (s) { return s.trim(); }).filter(String),
+  };
+}
+
+function telegramError(res) {
+  try {
+    return 'Telegram: ' + (JSON.parse(res.getContentText()).description || res.getResponseCode());
+  } catch (e) {
+    return 'Telegram: ' + res.getResponseCode();
+  }
+}
+
 /** Sends the message to every chat id; returns how many chats got it and, if none, why (Telegram's own words). */
 function sendToAll(text) {
-  var props = PropertiesService.getScriptProperties();
-  var token = props.getProperty('BOT_TOKEN');
-  var ids = (props.getProperty('CHAT_IDS') || '').split(',').map(function (s) { return s.trim(); }).filter(String);
+  var s = settings();
+  var token = s.token;
+  var ids = s.ids;
   if (!token) return { sent: 0, error: 'BOT_TOKEN is not set in Script Properties' };
   if (!ids.length) return { sent: 0, error: 'CHAT_IDS is not set in Script Properties' };
   var sent = 0;
@@ -94,9 +123,45 @@ function sendToAll(text) {
       muteHttpExceptions: true,
     });
     if (res.getResponseCode() === 200) sent++;
-    else error = 'Telegram: ' + (JSON.parse(res.getContentText() || '{}').description || res.getResponseCode());
+    else error = telegramError(res);
   });
   return { sent: sent, error: error };
+}
+
+/**
+ * Sends the attached file to every chat: an MP3 as a playable track (sendAudio), a picture as a photo
+ * (sendPhoto); if Telegram refuses that format, as a plain file (sendDocument). The file is uploaded once,
+ * other chats get it by Telegram's file_id. Returns '' or the reason it was not delivered.
+ */
+function sendFileToAll(file, caption) {
+  var s = settings();
+  var isImage = String(file.type).indexOf('image/') === 0;
+  var blob = Utilities.newBlob(Utilities.base64Decode(file.data), file.type, String(file.name || 'file').slice(0, 100));
+  var api = 'https://api.telegram.org/bot' + s.token + '/';
+  var method = isImage ? 'sendPhoto' : 'sendAudio';
+  var field = isImage ? 'photo' : 'audio';
+  var fileId = '';
+  var error = '';
+  s.ids.forEach(function (id) {
+    var payload = { chat_id: id, caption: caption };
+    payload[field] = fileId || blob;
+    var res = UrlFetchApp.fetch(api + method, { method: 'post', payload: payload, muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200 && !fileId) {
+      // e.g. WAV/OGG for sendAudio or a huge picture for sendPhoto: send it as a document instead
+      method = 'sendDocument';
+      field = 'document';
+      payload = { chat_id: id, caption: caption, document: blob };
+      res = UrlFetchApp.fetch(api + method, { method: 'post', payload: payload, muteHttpExceptions: true });
+    }
+    if (res.getResponseCode() !== 200) {
+      error = telegramError(res);
+      return;
+    }
+    var msg = JSON.parse(res.getContentText()).result || {};
+    var sentFile = msg.audio || msg.document || (msg.photo && msg.photo[msg.photo.length - 1]);
+    if (sentFile && !fileId) fileId = sentFile.file_id;
+  });
+  return error;
 }
 
 /**

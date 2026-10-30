@@ -957,6 +957,76 @@ span.send-field {
 .send-music {
   display: block;
 }
+/* Attachment: dashed drop zone; after a file is chosen it shows a player or a thumbnail */
+.send-drop {
+  margin-top: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 2px dashed var(--sub-text-color);
+  border-radius: 15px;
+  color: #b8bec6;
+  font-size: 0.95rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.send-drop:hover,
+.send-drop.is-over {
+  border-color: #7ee08a;
+  background-color: rgba(126, 224, 138, 0.08);
+}
+.send-drop.has-file {
+  border-style: solid;
+  border-color: #7ee08a;
+  cursor: default;
+}
+.send-drop.has-file .send-drop-hint,
+.send-file {
+  display: none;
+}
+.send-preview {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  text-align: left;
+}
+.send-preview:empty {
+  display: none;
+}
+.send-preview__media {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-height: 180px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+audio.send-preview__media {
+  color-scheme: dark;
+}
+.send-preview__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.send-preview__remove {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  color: var(--main-text-color);
+  background-color: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+.send-preview__remove:hover {
+  background-color: rgba(255, 0, 0, 0.8);
+}
+.send-file-error {
+  margin: 0.4rem 0 0;
+  color: #ff6b6b;
+}
+.send-file-error:empty {
+  display: none;
+}
 .send-weather + .send-label {
   margin-top: 1rem;
 }

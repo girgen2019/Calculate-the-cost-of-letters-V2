@@ -4,6 +4,8 @@ let USD_RATES;
 // Empty = the ➤ "Send" button stays hidden. The bot token is NOT here: it lives only in the script's properties.
 const TELEGRAM_RELAY_URL = 'https://script.google.com/macros/s/AKfycbzkYke_RsojWBlxxdiOMdLuSNZpBQsiwseX_D7mP6pSy-3jwwMD1_P8QihiV23gO1iE2w/exec';
 const SEND_COOLDOWN_MS = 30000; // one request per 30 s from this browser
+const MAX_AUDIO_MB = 20; // attachment limits: Telegram bots can upload up to 50 MB, a phone upload must stay quick
+const MAX_IMAGE_MB = 10; // Telegram's limit for photos
 let lastQuote = null; // what the price cards show now, for the "Send" dialog
 let rateDate = ''; // date of the NBRB rate, e.g. "30.10.2026"
 let defaultPlace = document.getElementById('robinson');
@@ -454,6 +456,65 @@ function openSendDialog() {
   musicInput.maxLength = 200;
   musicInput.placeholder = 'Track name or link (optional)';
   musicLabel.appendChild(musicInput);
+
+  // Attachment: an MP3 (or other audio) or a picture, dropped here or chosen from the device.
+  // It is previewed (audio can be played) and sent to Telegram as a playable track / photo.
+  let attachment = null;
+  let attachmentUrl = '';
+  const drop = lettersEl('div', 'send-drop');
+  const fileInput = lettersEl('input', 'send-file');
+  fileInput.type = 'file';
+  fileInput.accept = 'audio/*,image/*';
+  const dropHint = lettersEl('span', 'send-drop-hint', '🎵 Drop an MP3 or a picture here, or click to choose');
+  const preview = lettersEl('div', 'send-preview');
+  drop.append(fileInput, dropHint, preview);
+  const fileError = lettersEl('p', 'letters-summary send-file-error');
+
+  function setAttachment(file) {
+    fileError.textContent = '';
+    if (attachmentUrl) URL.revokeObjectURL(attachmentUrl);
+    attachment = null;
+    attachmentUrl = '';
+    preview.replaceChildren();
+    drop.classList.remove('has-file');
+    if (!file) return;
+    const kind = file.type.startsWith('audio/') ? 'audio' : file.type.startsWith('image/') ? 'image' : '';
+    const limit = kind === 'image' ? MAX_IMAGE_MB : MAX_AUDIO_MB;
+    if (!kind) {
+      fileError.textContent = 'Only audio (MP3) or a picture';
+      return;
+    }
+    if (file.size > limit * 1024 * 1024) {
+      fileError.textContent = `File is too big: max ${limit} MB`;
+      return;
+    }
+    attachment = file;
+    attachmentUrl = URL.createObjectURL(file);
+    const media = lettersEl(kind === 'audio' ? 'audio' : 'img', 'send-preview__media');
+    media.src = attachmentUrl;
+    if (kind === 'audio') media.controls = true;
+    else media.alt = file.name;
+    const info = lettersEl('span', 'send-preview__name', `${file.name} · ${file.size < 1024 * 1024 ? Math.ceil(file.size / 1024) + ' KB' : (file.size / 1024 / 1024).toFixed(1) + ' MB'}`);
+    const remove = lettersEl('button', 'send-preview__remove', '✕');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', 'Remove file');
+    remove.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.value = '';
+      setAttachment(null);
+    });
+    preview.append(media, info, remove);
+    drop.classList.add('has-file');
+  }
+
+  const readAsBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1]);
+      reader.onerror = () => reject(new Error('could not read the file'));
+      reader.readAsDataURL(file);
+    });
+
   const weatherLine = lettersEl('p', 'letters-summary send-weather');
   // Invisible to people; simple bots fill every field, the relay ignores such requests
   const honeypot = lettersEl('input', 'send-honeypot');
@@ -485,6 +546,7 @@ function openSendDialog() {
     overlay.classList.add('is-closing');
     const done = () => {
       overlay.remove();
+      if (attachmentUrl) URL.revokeObjectURL(attachmentUrl);
       document.removeEventListener('keydown', onKey);
       document.getElementById('input').focus();
     };
@@ -510,9 +572,12 @@ function openSendDialog() {
     }
     overlay.dataset.busy = '1';
     refresh();
-    sendBtn.textContent = 'Sending…';
+    sendBtn.textContent = attachment ? 'Uploading…' : 'Sending…';
     status.textContent = '';
     try {
+      const file = attachment
+        ? { name: attachment.name, type: attachment.type, data: await readAsBase64(attachment) }
+        : null;
       // text/plain: a "simple" request, so the browser sends no CORS preflight that Apps Script can't answer
       const res = await fetch(TELEGRAM_RELAY_URL, {
         method: 'POST',
@@ -531,6 +596,7 @@ function openSendDialog() {
           rateDate,
           weather: weatherFor(dateInput.value),
           music: musicInput.value.trim(),
+          file,
           website: honeypot.value,
         }),
       });
@@ -540,6 +606,15 @@ function openSendDialog() {
         localStorage.setItem('lastSendAt', String(Date.now()));
       } catch (e) {
         // ignore
+      }
+      // The request went through, but the file can still be refused by Telegram (e.g. wrong format)
+      if (result.fileError) {
+        status.textContent = '✅ Sent, but the file was not: ' + result.fileError;
+        status.className = 'send-status is-error';
+        overlay.dataset.busy = '';
+        sendBtn.textContent = 'Send ➤';
+        refresh();
+        return;
       }
       status.textContent = '✅ Sent to Telegram';
       status.className = 'send-status is-ok';
@@ -556,6 +631,20 @@ function openSendDialog() {
   closeBtn.addEventListener('click', close);
   cancelBtn.addEventListener('click', close);
   sendBtn.addEventListener('click', send);
+  fileInput.addEventListener('change', () => setAttachment(fileInput.files[0] || null));
+  drop.addEventListener('click', (e) => {
+    if (!attachment && e.target !== fileInput) fileInput.click();
+  });
+  drop.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    drop.classList.add('is-over');
+  });
+  drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('is-over');
+    setAttachment(e.dataTransfer.files[0] || null);
+  });
   // Typing: digits only, dots are added automatically (05112026 -> 05.11.2026)
   dateText.addEventListener('input', () => {
     const digits = dateText.value.replace(/\D/g, '').slice(0, 8);
@@ -587,7 +676,7 @@ function openSendDialog() {
   overlay.addEventListener('click', (e) => e.target === overlay && close());
   document.addEventListener('keydown', onKey);
 
-  modal.append(header, summary, dateLabel, weatherLine, musicLabel, honeypot, status, actions);
+  modal.append(header, summary, dateLabel, weatherLine, musicLabel, drop, fileError, honeypot, status, actions);
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   refresh();
