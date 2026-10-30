@@ -417,8 +417,16 @@ function openSendDialog() {
     lettersEl('div', 'send-prices', `${quote.usdNo} USD without pyrotechnics · ${quote.usdYes} USD with pyrotechnics`)
   );
 
+  // Date: our own DD.MM.YYYY text (the native field follows the browser locale, e.g. mm/dd/yyyy),
+  // the real date input lies invisibly on top and opens the picker — same trick as in the header
   const dateLabel = lettersEl('label', 'send-label', 'Event date');
-  const dateInput = lettersEl('input', 'letters-input send-date');
+  const dateField = lettersEl('span', 'letters-input send-field');
+  const dateText = lettersEl('span', 'send-date-text');
+  const dateIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  dateIcon.setAttribute('viewBox', '0 0 24 24');
+  dateIcon.setAttribute('aria-hidden', 'true');
+  dateIcon.innerHTML = '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>';
+  const dateInput = lettersEl('input', 'send-date');
   dateInput.type = 'date';
   dateInput.required = true;
   dateInput.min = isoDate(new Date());
@@ -426,7 +434,15 @@ function openSendDialog() {
   // default, and pre-filling today would make it easy to send the wrong date. Otherwise the field stays empty.
   const headerDate = document.getElementById('weatherDate').value;
   if (headerDate && headerDate > dateInput.min) dateInput.value = headerDate;
-  dateLabel.appendChild(dateInput);
+  dateField.append(dateText, dateIcon, dateInput);
+  dateLabel.appendChild(dateField);
+
+  const musicLabel = lettersEl('label', 'send-label', 'Music');
+  const musicInput = lettersEl('input', 'letters-input send-field send-music');
+  musicInput.type = 'text';
+  musicInput.maxLength = 200;
+  musicInput.placeholder = 'Track name or link (optional)';
+  musicLabel.appendChild(musicInput);
   const weatherLine = lettersEl('p', 'letters-summary send-weather');
   // Invisible to people; simple bots fill every field, the relay ignores such requests
   const honeypot = lettersEl('input', 'send-honeypot');
@@ -444,6 +460,9 @@ function openSendDialog() {
   actions.append(cancelBtn, sendBtn);
 
   function refresh() {
+    const [y, m, d] = dateInput.value.split('-');
+    dateText.textContent = dateInput.value ? `${d}.${m}.${y}` : 'dd.mm.yyyy';
+    dateText.classList.toggle('is-empty', !dateInput.value);
     const weather = dateInput.value ? weatherFor(dateInput.value) : '';
     weatherLine.textContent = weather || (dateInput.value ? 'No forecast for this date yet' : 'Pick the event date');
     sendBtn.disabled = !dateInput.value || dateInput.value < dateInput.min || overlay.dataset.busy === '1';
@@ -499,6 +518,7 @@ function openSendDialog() {
           rate: USD_RATES || null,
           rateDate,
           weather: weatherFor(dateInput.value),
+          music: musicInput.value.trim(),
           website: honeypot.value,
         }),
       });
@@ -525,10 +545,19 @@ function openSendDialog() {
   cancelBtn.addEventListener('click', close);
   sendBtn.addEventListener('click', send);
   dateInput.addEventListener('input', refresh);
+  dateInput.addEventListener('change', refresh);
+  // Desktop Chrome opens the calendar only from its own icon; showPicker() opens it from anywhere in the field
+  dateInput.addEventListener('click', () => {
+    try {
+      dateInput.showPicker();
+    } catch (e) {
+      // not supported or already open
+    }
+  });
   overlay.addEventListener('click', (e) => e.target === overlay && close());
   document.addEventListener('keydown', onKey);
 
-  modal.append(header, summary, dateLabel, weatherLine, honeypot, status, actions);
+  modal.append(header, summary, dateLabel, weatherLine, musicLabel, honeypot, status, actions);
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   refresh();

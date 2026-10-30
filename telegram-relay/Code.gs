@@ -14,6 +14,7 @@
 
 var MAX_PER_HOUR = 30;      // all requests together: protects your Telegram from spam
 var MAX_TEXT_LENGTH = 120;  // inscription length limit
+var MAX_MUSIC_LENGTH = 200; // music: track name or link
 
 /** The calculator sends a POST with a JSON body (as text/plain, so the browser makes no CORS preflight). */
 function doPost(e) {
@@ -28,8 +29,8 @@ function doPost(e) {
 
     if (!takeRateLimit()) return reply({ ok: false, error: 'Too many requests, try again later' });
 
-    var sent = sendToAll(formatMessage(data));
-    return reply({ ok: sent > 0, sent: sent, error: sent > 0 ? undefined : 'Telegram did not accept the message' });
+    var result = sendToAll(formatMessage(data));
+    return reply({ ok: result.sent > 0, sent: result.sent, error: result.sent > 0 ? undefined : result.error });
   } catch (err) {
     return reply({ ok: false, error: 'Bad request' });
   }
@@ -47,6 +48,7 @@ function validate(d) {
   var today = Utilities.formatDate(new Date(), 'Europe/Minsk', 'yyyy-MM-dd');
   if (d.eventDate < today) return 'Event date is in the past';
   if (!isFinite(d.usdNo) || !isFinite(d.usdYes)) return 'Prices are missing';
+  if (d.music && String(d.music).length > MAX_MUSIC_LENGTH) return 'Music text is too long';
   return null;
 }
 
@@ -67,6 +69,7 @@ function formatMessage(d) {
     '✍️ Надпись: <b>' + esc(d.inscription) + '</b>' + (d.counts ? ' (' + esc(d.counts) + ')' : ''),
     '💰 Без пиротехники: <b>' + num(d.usdNo) + ' USD</b>' + (isFinite(d.bynNo) ? ' / ' + num(d.bynNo) + ' BYN' : ''),
     '💥 С пиротехникой: <b>' + num(d.usdYes) + ' USD</b>' + (isFinite(d.bynYes) ? ' / ' + num(d.bynYes) + ' BYN' : ''),
+    '🎵 Музыка: ' + (d.music ? esc(d.music) : 'не указана'),
     '⚙️ Robinson club: ' + (d.robinson ? 'да' : 'нет') + ' · Double fountains: ' + (d.fountains ? 'да' : 'нет'),
   ];
   if (d.rate) lines.push('💱 Курс НБРБ' + (d.rateDate ? ' на ' + esc(d.rateDate) : '') + ': ' + esc(String(d.rate)));
@@ -74,12 +77,15 @@ function formatMessage(d) {
   return lines.join('\n');
 }
 
-/** Sends the message to every chat id; returns how many chats got it. */
+/** Sends the message to every chat id; returns how many chats got it and, if none, why (Telegram's own words). */
 function sendToAll(text) {
   var props = PropertiesService.getScriptProperties();
   var token = props.getProperty('BOT_TOKEN');
   var ids = (props.getProperty('CHAT_IDS') || '').split(',').map(function (s) { return s.trim(); }).filter(String);
+  if (!token) return { sent: 0, error: 'BOT_TOKEN is not set in Script Properties' };
+  if (!ids.length) return { sent: 0, error: 'CHAT_IDS is not set in Script Properties' };
   var sent = 0;
+  var error = '';
   ids.forEach(function (id) {
     var res = UrlFetchApp.fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
       method: 'post',
@@ -88,8 +94,9 @@ function sendToAll(text) {
       muteHttpExceptions: true,
     });
     if (res.getResponseCode() === 200) sent++;
+    else error = 'Telegram: ' + (JSON.parse(res.getContentText() || '{}').description || res.getResponseCode());
   });
-  return sent;
+  return { sent: sent, error: error };
 }
 
 /**
@@ -112,7 +119,8 @@ function showChatIds() {
 
 /** Sends a test message to everyone in CHAT_IDS (Run -> sendTestMessage). */
 function sendTestMessage() {
-  Logger.log('Sent to ' + sendToAll('✅ Бот калькулятора подключён. Заявки будут приходить сюда.') + ' chat(s)');
+  var result = sendToAll('✅ Бот калькулятора подключён. Заявки будут приходить сюда.');
+  Logger.log('Sent to ' + result.sent + ' chat(s)' + (result.error ? ' — ' + result.error : ''));
 }
 
 function reply(obj) {

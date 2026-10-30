@@ -900,11 +900,52 @@ img:hover {
   letter-spacing: 0.06em;
   color: #b8bec6;
 }
-.send-date {
+/* Date and music fields of the send dialog */
+.send-modal .send-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 0.4rem;
   font-family: var(--primary-font);
   font-size: 1.2rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+span.send-field {
+  position: relative;
+  cursor: pointer;
+}
+.send-field:focus-within {
+  box-shadow: 0 0 0 2px #7ee08a, 0 -0.1px 5px 5px rgb(122, 122, 122);
+}
+.send-date-text.is-empty {
+  color: var(--sub-text-color);
+}
+.send-field svg {
+  flex: none;
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: var(--sub-text-color);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.send-date {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  cursor: pointer;
   color-scheme: dark;
+}
+.send-music {
+  display: block;
+}
+.send-weather + .send-label {
+  margin-top: 1rem;
 }
 .send-honeypot {
   position: absolute;
