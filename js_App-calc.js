@@ -394,6 +394,17 @@ function weatherFor(date) {
   )}°C, wind ${Math.round(forecast.wind_speed_10m_max[i])} km/h`;
 }
 
+// File name -> track name: no extension, no download ids / hashes, no underscores
+function trackName(fileName) {
+  return fileName
+    .replace(/\.[a-z0-9]{2,4}$/i, '')
+    .replace(/[_\s-]*[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i, '')
+    .replace(/[_\s-]*[0-9a-f]{16,}$/i, '')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function openSendDialog() {
   const inscription = document.getElementById('input').value.trim();
   if (!inscription || !lastQuote || document.querySelector('.letters-overlay')) return;
@@ -505,6 +516,8 @@ function openSendDialog() {
     });
     preview.append(media, info, remove);
     drop.classList.add('has-file');
+    // "Shaman - Ты Моя_ef6b968a-243f-….mp3" -> "Shaman - Ты Моя" in the Music field, if it is empty
+    if (kind === 'audio' && !musicInput.value.trim()) musicInput.value = trackName(file.name);
   }
 
   const readAsBase64 = (file) =>
@@ -645,19 +658,32 @@ function openSendDialog() {
     drop.classList.remove('is-over');
     setAttachment(e.dataTransfer.files[0] || null);
   });
-  // Typing: digits only, dots are added automatically (05112026 -> 05.11.2026)
+  // Typing: digits only, dots are added automatically (05112026 -> 05.11.2026).
+  // A short year works too: 30.11.26 = 30.11.2026 (on leaving the field it is written in full).
+  const realDate = (iso) => {
+    const check = new Date(iso + 'T00:00');
+    return !isNaN(check) && isoDate(check) === iso;
+  };
   dateText.addEventListener('input', () => {
     const digits = dateText.value.replace(/\D/g, '').slice(0, 8);
     dateText.value = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)].filter(Boolean).join('.');
     dateError = '';
     dateInput.value = '';
+    const day = digits.slice(0, 2);
+    const month = digits.slice(2, 4);
     if (digits.length === 8) {
-      const iso = `${digits.slice(4)}-${digits.slice(2, 4)}-${digits.slice(0, 2)}`;
-      const check = new Date(iso + 'T00:00');
-      if (!isNaN(check) && isoDate(check) === iso) dateInput.value = iso;
+      const iso = `${digits.slice(4)}-${month}-${day}`;
+      if (realDate(iso)) dateInput.value = iso;
       else dateError = 'There is no such date';
+    } else if (digits.length === 6) {
+      // "30.11.20" can also be the start of 2026, so a past short year is treated as "still typing"
+      const iso = `20${digits.slice(4)}-${month}-${day}`;
+      if (realDate(iso) && iso >= dateInput.min) dateInput.value = iso;
     }
     refresh();
+  });
+  dateText.addEventListener('blur', () => {
+    if (dateInput.value) showDateText();
   });
   // Calendar: a picked date is written into the text field
   dateInput.addEventListener('change', () => {

@@ -34,7 +34,7 @@ function doPost(e) {
     var result = sendToAll(formatMessage(data));
     if (!result.sent) return reply({ ok: false, sent: 0, error: result.error });
     // The request itself is delivered; an attached track or picture follows it as a separate message
-    var fileError = data.file ? sendFileToAll(data.file, '🎵 ' + data.inscription + ' · ' + formatDate(data.eventDate)) : '';
+    var fileError = data.file ? sendFileToAll(data.file, (data.music ? '🎵 ' + data.music + '\n' : '') + '✍️ ' + data.inscription + ' · ' + formatDate(data.eventDate), data.music) : '';
     return reply({ ok: true, sent: result.sent, fileError: fileError || undefined });
   } catch (err) {
     return reply({ ok: false, error: 'Bad request' });
@@ -133,7 +133,9 @@ function sendToAll(text) {
  * (sendPhoto); if Telegram refuses that format, as a plain file (sendDocument). The file is uploaded once,
  * other chats get it by Telegram's file_id. Returns '' or the reason it was not delivered.
  */
-function sendFileToAll(file, caption) {
+function sendFileToAll(file, caption, music) {
+  // "Shaman - Ты Моя" -> performer "Shaman", title "Ты Моя": Telegram shows them on the track
+  var parts = String(music || '').split(/\s+[-–—]\s+/);
   var s = settings();
   var isImage = String(file.type).indexOf('image/') === 0;
   var blob = Utilities.newBlob(Utilities.base64Decode(file.data), file.type, String(file.name || 'file').slice(0, 100));
@@ -145,6 +147,12 @@ function sendFileToAll(file, caption) {
   s.ids.forEach(function (id) {
     var payload = { chat_id: id, caption: caption };
     payload[field] = fileId || blob;
+    if (field === 'audio' && parts.length > 1) {
+      payload.performer = parts[0];
+      payload.title = parts.slice(1).join(' - ');
+    } else if (field === 'audio' && music) {
+      payload.title = music;
+    }
     var res = UrlFetchApp.fetch(api + method, { method: 'post', payload: payload, muteHttpExceptions: true });
     if (res.getResponseCode() !== 200 && !fileId) {
       // e.g. WAV/OGG for sendAudio or a huge picture for sendPhoto: send it as a document instead
