@@ -417,11 +417,16 @@ function openSendDialog() {
     lettersEl('div', 'send-prices', `${quote.usdNo} USD without pyrotechnics · ${quote.usdYes} USD with pyrotechnics`)
   );
 
-  // Date: our own DD.MM.YYYY text (the native field follows the browser locale, e.g. mm/dd/yyyy),
-  // the real date input lies invisibly on top and opens the picker — same trick as in the header
+  // Date: typed by hand as DD.MM.YYYY (the native field follows the browser locale, e.g. mm/dd/yyyy);
+  // the real date input lies invisibly over the calendar icon and opens the picker
   const dateLabel = lettersEl('label', 'send-label', 'Event date');
   const dateField = lettersEl('span', 'letters-input send-field');
-  const dateText = lettersEl('span', 'send-date-text');
+  const dateText = lettersEl('input', 'send-date-text');
+  dateText.type = 'text';
+  dateText.inputMode = 'numeric';
+  dateText.maxLength = 10;
+  dateText.placeholder = 'dd.mm.yyyy';
+  dateText.autocomplete = 'off';
   const dateIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   dateIcon.setAttribute('viewBox', '0 0 24 24');
   dateIcon.setAttribute('aria-hidden', 'true');
@@ -434,6 +439,12 @@ function openSendDialog() {
   // default, and pre-filling today would make it easy to send the wrong date. Otherwise the field stays empty.
   const headerDate = document.getElementById('weatherDate').value;
   if (headerDate && headerDate > dateInput.min) dateInput.value = headerDate;
+  const showDateText = () => {
+    const [y, m, d] = dateInput.value.split('-');
+    dateText.value = dateInput.value ? `${d}.${m}.${y}` : '';
+  };
+  showDateText();
+  let dateError = '';
   dateField.append(dateText, dateIcon, dateInput);
   dateLabel.appendChild(dateField);
 
@@ -460,11 +471,12 @@ function openSendDialog() {
   actions.append(cancelBtn, sendBtn);
 
   function refresh() {
-    const [y, m, d] = dateInput.value.split('-');
-    dateText.textContent = dateInput.value ? `${d}.${m}.${y}` : 'dd.mm.yyyy';
-    dateText.classList.toggle('is-empty', !dateInput.value);
-    const weather = dateInput.value ? weatherFor(dateInput.value) : '';
-    weatherLine.textContent = weather || (dateInput.value ? 'No forecast for this date yet' : 'Pick the event date');
+    const past = dateInput.value && dateInput.value < dateInput.min;
+    const weather = dateInput.value && !past ? weatherFor(dateInput.value) : '';
+    weatherLine.textContent =
+      dateError ||
+      (past ? 'This date has already passed' : weather || (dateInput.value ? 'No forecast for this date yet' : 'Pick the event date'));
+    weatherLine.classList.toggle('is-error', Boolean(dateError || past));
     sendBtn.disabled = !dateInput.value || dateInput.value < dateInput.min || overlay.dataset.busy === '1';
   }
 
@@ -544,9 +556,27 @@ function openSendDialog() {
   closeBtn.addEventListener('click', close);
   cancelBtn.addEventListener('click', close);
   sendBtn.addEventListener('click', send);
-  dateInput.addEventListener('input', refresh);
-  dateInput.addEventListener('change', refresh);
-  // Desktop Chrome opens the calendar only from its own icon; showPicker() opens it from anywhere in the field
+  // Typing: digits only, dots are added automatically (05112026 -> 05.11.2026)
+  dateText.addEventListener('input', () => {
+    const digits = dateText.value.replace(/\D/g, '').slice(0, 8);
+    dateText.value = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)].filter(Boolean).join('.');
+    dateError = '';
+    dateInput.value = '';
+    if (digits.length === 8) {
+      const iso = `${digits.slice(4)}-${digits.slice(2, 4)}-${digits.slice(0, 2)}`;
+      const check = new Date(iso + 'T00:00');
+      if (!isNaN(check) && isoDate(check) === iso) dateInput.value = iso;
+      else dateError = 'There is no such date';
+    }
+    refresh();
+  });
+  // Calendar: a picked date is written into the text field
+  dateInput.addEventListener('change', () => {
+    dateError = '';
+    showDateText();
+    refresh();
+  });
+  // Desktop Chrome opens the calendar only from its own icon; showPicker() opens it on any click
   dateInput.addEventListener('click', () => {
     try {
       dateInput.showPicker();
@@ -561,7 +591,7 @@ function openSendDialog() {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   refresh();
-  setTimeout(() => dateInput.focus(), 50);
+  setTimeout(() => dateText.focus(), 50);
 }
 
 document.getElementById('inputSend').addEventListener('click', openSendDialog);

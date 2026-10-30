@@ -914,13 +914,25 @@ img:hover {
 }
 span.send-field {
   position: relative;
-  cursor: pointer;
 }
 .send-field:focus-within {
   box-shadow: 0 0 0 2px #7ee08a, 0 -0.1px 5px 5px rgb(122, 122, 122);
 }
-.send-date-text.is-empty {
+.send-date-text {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  color: inherit;
+  background: none;
+  border: 0;
+  outline: none;
+  font: inherit;
+}
+.send-date-text::placeholder {
   color: var(--sub-text-color);
+}
+.send-weather.is-error {
+  color: #ff6b6b;
 }
 .send-field svg {
   flex: none;
@@ -933,8 +945,9 @@ span.send-field {
 }
 .send-date {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  top: 0;
+  right: 0;
+  width: 3.2rem;
   height: 100%;
   opacity: 0;
   border: 0;
