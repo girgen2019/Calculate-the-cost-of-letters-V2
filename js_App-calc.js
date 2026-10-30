@@ -2,7 +2,7 @@
 let USD_RATES;
 // URL of the Google Apps Script web app (telegram-relay/Code.gs) that sends requests to Telegram.
 // Empty = the ➤ "Send" button stays hidden. The bot token is NOT here: it lives only in the script's properties.
-const TELEGRAM_RELAY_URL = '';
+const TELEGRAM_RELAY_URL = 'https://script.google.com/macros/s/AKfycbzkYke_RsojWBlxxdiOMdLuSNZpBQsiwseX_D7mP6pSy-3jwwMD1_P8QihiV23gO1iE2w/exec';
 const SEND_COOLDOWN_MS = 30000; // one request per 30 s from this browser
 let lastQuote = null; // what the price cards show now, for the "Send" dialog
 let rateDate = ''; // date of the NBRB rate, e.g. "30.10.2026"
