@@ -1,5 +1,11 @@
 /** @format */
 let USD_RATES;
+// URL of the Google Apps Script web app (telegram-relay/Code.gs) that sends requests to Telegram.
+// Empty = the ➤ "Send" button stays hidden. The bot token is NOT here: it lives only in the script's properties.
+const TELEGRAM_RELAY_URL = '';
+const SEND_COOLDOWN_MS = 30000; // one request per 30 s from this browser
+let lastQuote = null; // what the price cards show now, for the "Send" dialog
+let rateDate = ''; // date of the NBRB rate, e.g. "30.10.2026"
 let defaultPlace = document.getElementById('robinson');
 let defaultPlaceFocus = document.querySelector('.container__controls');
 let doublePyro = document.getElementById('double');
@@ -170,6 +176,19 @@ function getResult(chars, usdNo, usdYes, bynNo, bynYes, counts) {
   const venue = addFiveBaks();
   // BYN keeps the original rounding: rounded-up base + rounded venue surcharge; unknown without a rate
   const byn = (base) => (USD_RATES ? base + Math.round(venue * USD_RATES) : null);
+  // Snapshot for the "Send" dialog: exactly what the cards show
+  lastQuote = chars.length
+    ? {
+        usdNo: usdNo + venue,
+        usdYes: usdYes + venue,
+        bynNo: byn(bynNo),
+        bynYes: byn(bynYes),
+        counts:
+          (counts.letters ? ruPlural(counts.letters, 'буква', 'буквы', 'букв') : '') +
+          (counts.letters && counts.hearts ? ' + ' : '') +
+          (counts.hearts ? ruPlural(counts.hearts, 'сердце', 'сердца', 'сердец') : ''),
+      }
+    : null;
   renderResult(
     chars.map((ch) => ch.trim()),
     [
@@ -347,8 +366,176 @@ function onInput() {
   // By id, not "the first input on the page": the header has a date input before it
   const text = document.getElementById('input').value;
   document.getElementById('inputClear').hidden = !text;
+  // ➤ only when the Telegram relay is configured and there is something to send
+  document.getElementById('inputSend').hidden = !TELEGRAM_RELAY_URL || !text.trim();
   checkString(text.trim());
 }
+
+// ================ SEND TO TELEGRAM (settings are at the top of the file)
+// "1 буква", "3 буквы", "12 букв" — Russian plural forms for the Telegram message
+function ruPlural(n, one, few, many) {
+  const tens = n % 100;
+  const units = n % 10;
+  const word = tens >= 11 && tens <= 14 ? many : units === 1 ? one : units >= 2 && units <= 4 ? few : many;
+  return n + ' ' + word;
+}
+
+const isoDate = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+function weatherFor(date) {
+  const i = forecast ? forecast.time.indexOf(date) : -1;
+  if (i < 0) return '';
+  const [icon, text] = WEATHER_CODES[forecast.weather_code[i]] || ['🌡️', ''];
+  return `${icon} ${text}, ${Math.round(forecast.temperature_2m_min[i])}…${Math.round(
+    forecast.temperature_2m_max[i]
+  )}°C, wind ${Math.round(forecast.wind_speed_10m_max[i])} km/h`;
+}
+
+function openSendDialog() {
+  const inscription = document.getElementById('input').value.trim();
+  if (!inscription || !lastQuote || document.querySelector('.letters-overlay')) return;
+  const quote = { ...lastQuote };
+
+  const overlay = lettersEl('div', 'letters-overlay');
+  const modal = lettersEl('div', 'letters-modal send-modal');
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'sendTitle');
+
+  const header = lettersEl('div', 'letters-header');
+  const title = lettersEl('h2', 'letters-title', 'Send to Telegram');
+  title.id = 'sendTitle';
+  const closeBtn = lettersEl('button', 'letters-close', '✕');
+  closeBtn.type = 'button';
+  closeBtn.setAttribute('aria-label', 'Close');
+  header.append(title, closeBtn);
+
+  const summary = lettersEl('div', 'send-summary');
+  summary.append(
+    lettersEl('div', 'result__word', inscription),
+    lettersEl('div', 'send-prices', `${quote.usdNo} USD without pyrotechnics · ${quote.usdYes} USD with pyrotechnics`)
+  );
+
+  const dateLabel = lettersEl('label', 'send-label', 'Event date');
+  const dateInput = lettersEl('input', 'letters-input send-date');
+  dateInput.type = 'date';
+  dateInput.required = true;
+  dateInput.min = isoDate(new Date());
+  // Use the header weather date only if someone picked a future day there; the header shows today by
+  // default, and pre-filling today would make it easy to send the wrong date. Otherwise the field stays empty.
+  const headerDate = document.getElementById('weatherDate').value;
+  if (headerDate && headerDate > dateInput.min) dateInput.value = headerDate;
+  dateLabel.appendChild(dateInput);
+  const weatherLine = lettersEl('p', 'letters-summary send-weather');
+  // Invisible to people; simple bots fill every field, the relay ignores such requests
+  const honeypot = lettersEl('input', 'send-honeypot');
+  honeypot.tabIndex = -1;
+  honeypot.autocomplete = 'off';
+  honeypot.setAttribute('aria-hidden', 'true');
+
+  const status = lettersEl('p', 'send-status');
+  status.setAttribute('role', 'status');
+  const actions = lettersEl('div', 'send-actions');
+  const cancelBtn = lettersEl('button', 'send-btn send-btn--ghost', 'Cancel');
+  cancelBtn.type = 'button';
+  const sendBtn = lettersEl('button', 'send-btn', 'Send ➤');
+  sendBtn.type = 'button';
+  actions.append(cancelBtn, sendBtn);
+
+  function refresh() {
+    const weather = dateInput.value ? weatherFor(dateInput.value) : '';
+    weatherLine.textContent = weather || (dateInput.value ? 'No forecast for this date yet' : 'Pick the event date');
+    sendBtn.disabled = !dateInput.value || dateInput.value < dateInput.min || overlay.dataset.busy === '1';
+  }
+
+  function close() {
+    if (overlay.classList.contains('is-closing')) return;
+    overlay.classList.add('is-closing');
+    const done = () => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      document.getElementById('input').focus();
+    };
+    overlay.addEventListener('animationend', (e) => e.target === overlay && done());
+    setTimeout(() => overlay.isConnected && done(), 400);
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') close();
+  }
+
+  async function send() {
+    let last = 0;
+    try {
+      last = Number(localStorage.getItem('lastSendAt')) || 0;
+    } catch (e) {
+      // storage blocked: no client-side cooldown, the relay still limits requests
+    }
+    const wait = Math.ceil((last + SEND_COOLDOWN_MS - Date.now()) / 1000);
+    if (wait > 0) {
+      status.textContent = `Please wait ${wait} s before sending again`;
+      status.className = 'send-status is-error';
+      return;
+    }
+    overlay.dataset.busy = '1';
+    refresh();
+    sendBtn.textContent = 'Sending…';
+    status.textContent = '';
+    try {
+      // text/plain: a "simple" request, so the browser sends no CORS preflight that Apps Script can't answer
+      const res = await fetch(TELEGRAM_RELAY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          inscription,
+          eventDate: dateInput.value,
+          counts: quote.counts,
+          usdNo: quote.usdNo,
+          usdYes: quote.usdYes,
+          bynNo: quote.bynNo,
+          bynYes: quote.bynYes,
+          robinson: defaultPlace.checked,
+          fountains: doublePyro.checked,
+          rate: USD_RATES || null,
+          rateDate,
+          weather: weatherFor(dateInput.value),
+          website: honeypot.value,
+        }),
+      });
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error || 'Not sent');
+      try {
+        localStorage.setItem('lastSendAt', String(Date.now()));
+      } catch (e) {
+        // ignore
+      }
+      status.textContent = '✅ Sent to Telegram';
+      status.className = 'send-status is-ok';
+      setTimeout(close, 1500);
+    } catch (err) {
+      status.textContent = '❌ Not sent: ' + (err.message === 'Failed to fetch' ? 'no connection' : err.message);
+      status.className = 'send-status is-error';
+      overlay.dataset.busy = '';
+      sendBtn.textContent = 'Send ➤';
+      refresh();
+    }
+  }
+
+  closeBtn.addEventListener('click', close);
+  cancelBtn.addEventListener('click', close);
+  sendBtn.addEventListener('click', send);
+  dateInput.addEventListener('input', refresh);
+  overlay.addEventListener('click', (e) => e.target === overlay && close());
+  document.addEventListener('keydown', onKey);
+
+  modal.append(header, summary, dateLabel, weatherLine, honeypot, status, actions);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  refresh();
+  setTimeout(() => dateInput.focus(), 50);
+}
+
+document.getElementById('inputSend').addEventListener('click', openSendDialog);
 
 // ✕ in the input: removes the whole inscription and resets the result
 document.getElementById('inputClear').addEventListener('click', () => {
@@ -385,6 +572,7 @@ function getAPI(response) {
   }
   USD_RATES = rate;
   const dateRateResult = response.Date.slice(0, 10).split('-').reverse().join('.');
+  rateDate = dateRateResult;
   // Same pattern as the weather chip: label · value in bold · secondary text
   showRate([
     chipPart('span', 'chip__label', 'USD'),

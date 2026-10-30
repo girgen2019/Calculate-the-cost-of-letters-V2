@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Montserrat:wght@100;200;300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style-calc.css?v=20261028">
+    <link rel="stylesheet" href="style-calc.css?v=20261030">
     <title>Сalculator</title>
     <link rel="icon" type="image/x-icon" href="./assets/calculator-fav.png">
 </head>
@@ -42,6 +42,8 @@
             <input class="container__input" id="input" type="text" placeholder="Enter text..." autofocus>
             <!-- Clears the inscription and the result; shown only when there is text -->
             <button type="button" class="input-clear" id="inputClear" aria-label="Clear" hidden>✕</button>
+            <!-- Sends the inscription, prices and event date to Telegram; shown only when the relay is configured -->
+            <button type="button" class="input-clear input-send" id="inputSend" aria-label="Send to Telegram" hidden>➤</button>
 
         </div>
         <!-- Controls -->
@@ -76,7 +78,7 @@
             </div>
         </div>
     </main>
-    <script src="./js_App-calc.js?v=20261028"></script>
+    <script src="./js_App-calc.js?v=20261030"></script>
 
 </body>
 

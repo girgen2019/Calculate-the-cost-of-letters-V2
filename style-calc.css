@@ -87,6 +87,19 @@ html {
 .input-clear[hidden] {
   display: none;
 }
+/* ➤ "Send to Telegram": same round button, left of ✕ */
+.input-send {
+  right: 3.6rem;
+}
+.input-send:hover,
+.input-send:focus-visible {
+  background-color: #7ee08a;
+  color: var(--primary-color);
+  transform: none;
+}
+.input-wrap:has(.input-send:not([hidden])) .container__input {
+  padding-right: 6.3rem;
+}
 .input-clear:hover,
 .input-clear:focus-visible {
   background-color: red;
@@ -848,4 +861,71 @@ img:hover {
   .result__word {
     font-size: 1.2rem;
   }
+}
+
+/* ===== Send to Telegram dialog (reuses the letters dialog card and animation) ===== */
+.send-summary {
+  margin-bottom: 1rem;
+}
+.send-prices {
+  color: #b8bec6;
+  font-size: 0.9rem;
+}
+.send-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #b8bec6;
+}
+.send-date {
+  margin-top: 0.4rem;
+  font-family: var(--primary-font);
+  font-size: 1.2rem;
+  color-scheme: dark;
+}
+.send-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.send-status {
+  min-height: 1.3em;
+  margin-top: 0.6rem;
+  font-size: 0.95rem;
+}
+.send-status.is-ok {
+  color: #7ee08a;
+}
+.send-status.is-error {
+  color: red;
+}
+.send-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+.send-btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--primary-font);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background-color: #7ee08a;
+  cursor: pointer;
+}
+.send-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.send-btn--ghost {
+  color: var(--main-text-color);
+  background-color: var(--secondary-color);
+  box-shadow: 0 0 4px 2px rgba(122, 122, 122, 0.8);
 }
