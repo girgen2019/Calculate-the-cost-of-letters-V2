@@ -12,6 +12,7 @@
  * Setup steps are in telegram-relay/README.md.
  */
 
+var RELAY_VERSION = 4;       // shown when the web app URL is opened: tells which code is deployed
 var MAX_PER_HOUR = 30;      // all requests together: protects your Telegram from spam
 var MAX_TEXT_LENGTH = 120;  // inscription length limit
 var MAX_MUSIC_LENGTH = 200; // music: track name or link
@@ -43,7 +44,7 @@ function doPost(e) {
 
 /** Opening the web app URL in a browser just says it works (no secrets are shown). */
 function doGet() {
-  return reply({ ok: true, service: 'letters-calculator-telegram-relay' });
+  return reply({ ok: true, service: 'letters-calculator-telegram-relay', version: RELAY_VERSION });
 }
 
 function validate(d) {
