@@ -404,6 +404,15 @@ async function postToRelay(body) {
   return res.json();
 }
 
+// iPhone: "audio/*" alone greys out MP3 files in the Files app, so the extensions are listed explicitly
+const ATTACH_ACCEPT = '.mp3,.m4a,.aac,.wav,.ogg,.flac,audio/mpeg,audio/mp4,audio/*,image/*';
+const AUDIO_TYPES = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav', ogg: 'audio/ogg', flac: 'audio/flac' };
+// Some phones give a file without a type (file.type === ''): take it from the extension
+function fileType(file) {
+  if (file.type) return file.type;
+  return AUDIO_TYPES[(file.name.split('.').pop() || '').toLowerCase()] || '';
+}
+
 const readAsBase64 = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -428,7 +437,7 @@ function showUploadToast(text, state) {
 
 // Uploads the attached file after the request; the page warns before closing while it is in progress
 async function uploadInBackground(request, file) {
-  const what = file.type.startsWith('image/') ? 'Picture' : 'Track';
+  const what = fileType(file).startsWith('image/') ? 'Picture' : 'Track';
   const warn = (e) => {
     e.preventDefault();
     e.returnValue = '';
@@ -437,7 +446,7 @@ async function uploadInBackground(request, file) {
   showUploadToast(`🎵 Uploading ${what.toLowerCase()} to Telegram…`);
   try {
     const data = await readAsBase64(file);
-    const result = await postToRelay({ ...request, file: { name: file.name, type: file.type, data } });
+    const result = await postToRelay({ ...request, file: { name: file.name, type: fileType(file), data } });
     if (!result.ok) throw new Error(result.error || 'not accepted');
     showUploadToast(`✅ ${what} added to the request in Telegram`, 'ok');
   } catch (err) {
@@ -528,7 +537,7 @@ function openSendDialog() {
   const drop = lettersEl('div', 'send-drop');
   const fileInput = lettersEl('input', 'send-file');
   fileInput.type = 'file';
-  fileInput.accept = 'audio/*,image/*';
+  fileInput.accept = ATTACH_ACCEPT;
   const dropHint = lettersEl('span', 'send-drop-hint', '🎵 Drop an MP3 or a picture here, or click to choose');
   const preview = lettersEl('div', 'send-preview');
   drop.append(fileInput, dropHint, preview);
@@ -542,7 +551,8 @@ function openSendDialog() {
     preview.replaceChildren();
     drop.classList.remove('has-file');
     if (!file) return;
-    const kind = file.type.startsWith('audio/') ? 'audio' : file.type.startsWith('image/') ? 'image' : '';
+    const type = fileType(file);
+    const kind = type.startsWith('audio/') ? 'audio' : type.startsWith('image/') ? 'image' : '';
     const limit = kind === 'image' ? MAX_IMAGE_MB : MAX_AUDIO_MB;
     if (!kind) {
       fileError.textContent = 'Only audio (MP3) or a picture';
