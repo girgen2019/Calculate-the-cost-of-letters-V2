@@ -436,25 +436,63 @@ function showUploadToast(text, state) {
 }
 
 // Uploads the attached file after the request; the page warns before closing while it is in progress
+// Uploads the attached file after the request. On phones the browser pauses a page that goes to the
+// background (e.g. you switch to Telegram to look), and the upload breaks; it is retried automatically
+// when the page is back. The relay ignores a repeat of an already delivered file (same replaceToken).
 async function uploadInBackground(request, file) {
-  const what = fileType(file).startsWith('image/') ? 'Picture' : 'Track';
+  const what = file.type.startsWith('image/') ? 'Picture' : 'Track';
   const warn = (e) => {
     e.preventDefault();
     e.returnValue = '';
   };
+  let wentHidden = document.hidden;
+  const onVisibility = () => {
+    if (document.hidden) wentHidden = true;
+  };
   window.addEventListener('beforeunload', warn);
-  showUploadToast(`🎵 Uploading ${what.toLowerCase()} to Telegram…`);
-  try {
-    const data = await readAsBase64(file);
-    const result = await postToRelay({ ...request, file: { name: file.name, type: fileType(file), data } });
-    if (!result.ok) throw new Error(result.error || 'not accepted');
-    showUploadToast(`✅ ${what} added to the request in Telegram`, 'ok');
-  } catch (err) {
-    showUploadToast(`❌ ${what} not sent: ` + (err.message === 'Failed to fetch' ? 'no connection' : err.message), 'error');
-  } finally {
+  document.addEventListener('visibilitychange', onVisibility);
+  const stop = () => {
     window.removeEventListener('beforeunload', warn);
+    document.removeEventListener('visibilitychange', onVisibility);
+  };
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    showUploadToast(
+      attempt === 1 ? `🎵 Uploading ${what.toLowerCase()}… keep this page open` : `🎵 Resuming ${what.toLowerCase()} upload…`
+    );
+    try {
+      const result = await postToRelay({ ...request, file });
+      if (!result.ok) {
+        stop();
+        showUploadToast(`❌ ${what} not sent: ` + (result.error || 'not accepted'), 'error');
+        return;
+      }
+      stop();
+      showUploadToast(`✅ ${what} added to the request in Telegram`, 'ok');
+      return;
+    } catch (err) {
+      // Network broke: if the page was in the background, wait until it is visible again and retry
+      if (attempt < 3 && (wentHidden || document.hidden)) {
+        showUploadToast(`⏸ ${what} upload paused — it continues when this page is open`);
+        if (document.hidden) {
+          await new Promise((resolve) => {
+            const back = () => {
+              if (document.hidden) return;
+              document.removeEventListener('visibilitychange', back);
+              resolve();
+            };
+            document.addEventListener('visibilitychange', back);
+          });
+        }
+        wentHidden = false;
+        continue;
+      }
+      stop();
+      showUploadToast(`❌ ${what} not sent: ` + (err.message === 'Failed to fetch' || err.message === 'Load failed' ? 'no connection' : err.message), 'error');
+      return;
+    }
   }
 }
+
 
 // File name -> track name: no extension, no download ids / hashes, no underscores
 function trackName(fileName) {
@@ -674,6 +712,9 @@ function openSendDialog() {
     };
     try {
       // The request goes alone and fast; a track or picture is uploaded afterwards in the background
+      const file = attachment
+        ? { name: attachment.name, type: fileType(attachment), data: await readAsBase64(attachment) }
+        : null;
       const result = await postToRelay(request);
       if (!result.ok) throw new Error(result.error || 'Not sent');
       try {
@@ -684,7 +725,7 @@ function openSendDialog() {
       status.textContent = '✅ Sent to Telegram';
       status.className = 'send-status is-ok';
       // replaceToken: the relay swaps the text message for the track, so the chat gets one message
-      if (attachment) uploadInBackground({ ...request, kind: 'file', replaceToken: result.replaceToken }, attachment);
+      if (file) uploadInBackground({ ...request, kind: 'file', replaceToken: result.replaceToken }, file);
       setTimeout(close, attachment ? 700 : 1500);
     } catch (err) {
       status.textContent = '❌ Not sent: ' + (err.message === 'Failed to fetch' ? 'no connection' : err.message);

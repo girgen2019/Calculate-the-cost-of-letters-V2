@@ -12,7 +12,7 @@
  * Setup steps are in telegram-relay/README.md.
  */
 
-var RELAY_VERSION = 6;       // shown when the web app URL is opened: tells which code is deployed
+var RELAY_VERSION = 7;       // shown when the web app URL is opened: tells which code is deployed
 var MAX_PER_HOUR = 40;      // all requests together (a send with a track = 2 requests): protects your Telegram from spam
 var MAX_TEXT_LENGTH = 120;  // inscription length limit
 var MAX_MUSIC_LENGTH = 200; // music: track name or link
@@ -39,12 +39,17 @@ function doPost(e) {
       if (!data.file) return reply({ ok: false, error: 'No file' });
       var cache = CacheService.getScriptCache();
       var key = 'msg-' + String(data.replaceToken || '');
+      // A phone may resend the file after its connection broke: deliver it only once per request
+      if (data.replaceToken && cache.get('done-' + data.replaceToken)) return reply({ ok: true, repeated: true });
       var textMessages = JSON.parse(cache.get(key) || '{}');
       var caption = formatMessage(data);
       // Telegram allows 1024 characters in a caption; a very long request keeps a short caption
       if (caption.length > 1000) caption = '🔥 <b>' + esc(data.inscription) + '</b> · ' + formatDate(data.eventDate);
       var fileError = sendFileToAll(data.file, caption, data.music, textMessages);
-      cache.remove(key);
+      if (!fileError) {
+        cache.remove(key);
+        if (data.replaceToken) cache.put('done-' + data.replaceToken, '1', 3600);
+      }
       return reply({ ok: !fileError, error: fileError || undefined });
     }
 
