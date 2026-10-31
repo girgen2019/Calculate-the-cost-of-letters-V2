@@ -918,6 +918,10 @@ span.send-field {
 .send-field:focus-within {
   box-shadow: 0 0 0 2px #7ee08a, 0 -0.1px 5px 5px rgb(122, 122, 122);
 }
+/* Date missing / wrong: red frame like the "with pyrotechnics" card */
+.send-modal .send-field.is-invalid {
+  box-shadow: 0 0 0 2px red, 0 -0.1px 5px 5px rgb(122, 122, 122);
+}
 .send-date-text {
   flex: 1;
   min-width: 0;

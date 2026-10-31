@@ -599,14 +599,22 @@ function openSendDialog() {
   sendBtn.type = 'button';
   actions.append(cancelBtn, sendBtn);
 
+  // Send stays clickable: pressing it without a valid date shows the reason in red under the field
+  let triedToSend = false;
+  function dateProblem() {
+    if (dateError) return dateError;
+    if (dateInput.value && dateInput.value < dateInput.min) return 'This date has already passed';
+    if (!dateInput.value && triedToSend) return 'Choose the event date';
+    return '';
+  }
   function refresh() {
-    const past = dateInput.value && dateInput.value < dateInput.min;
-    const weather = dateInput.value && !past ? weatherFor(dateInput.value) : '';
+    const problem = dateProblem();
+    const weather = dateInput.value && !problem ? weatherFor(dateInput.value) : '';
     weatherLine.textContent =
-      dateError ||
-      (past ? 'This date has already passed' : weather || (dateInput.value ? 'No forecast for this date yet' : 'Pick the event date'));
-    weatherLine.classList.toggle('is-error', Boolean(dateError || past));
-    sendBtn.disabled = !dateInput.value || dateInput.value < dateInput.min || overlay.dataset.busy === '1';
+      problem || weather || (dateInput.value ? 'No forecast for this date yet' : 'Pick the event date');
+    weatherLine.classList.toggle('is-error', Boolean(problem));
+    dateField.classList.toggle('is-invalid', Boolean(problem));
+    sendBtn.disabled = overlay.dataset.busy === '1';
   }
 
   function close() {
@@ -626,6 +634,12 @@ function openSendDialog() {
   }
 
   async function send() {
+    if (!dateInput.value || dateProblem()) {
+      triedToSend = true;
+      refresh();
+      dateText.focus();
+      return;
+    }
     let last = 0;
     try {
       last = Number(localStorage.getItem('lastSendAt')) || 0;
