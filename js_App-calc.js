@@ -1,11 +1,19 @@
 /** @format */
+import {
+  TELEGRAM_RELAY_URL,
+  SEND_COOLDOWN_MS,
+  MAX_AUDIO_MB,
+  MAX_IMAGE_MB,
+  ATTACH_ACCEPT,
+  AUDIO_TYPES,
+  STOCK_LETTERS,
+  ROBINSON_CLUB,
+  WEATHER_CODES,
+} from './config.js?v=20261119a';
+
+// The main input, declared explicitly instead of the browser's automatic global for id="input"
+const input = document.getElementById('input');
 let USD_RATES;
-// URL of the Google Apps Script web app (telegram-relay/Code.gs) that sends requests to Telegram.
-// Empty = the ➤ "Send" button stays hidden. The bot token is NOT here: it lives only in the script's properties.
-const TELEGRAM_RELAY_URL = 'https://script.google.com/macros/s/AKfycbzkYke_RsojWBlxxdiOMdLuSNZpBQsiwseX_D7mP6pSy-3jwwMD1_P8QihiV23gO1iE2w/exec';
-const SEND_COOLDOWN_MS = 30000; // one request per 30 s from this browser
-const MAX_AUDIO_MB = 20; // attachment limits: Telegram bots can upload up to 50 MB, a phone upload must stay quick
-const MAX_IMAGE_MB = 10; // Telegram's limit for photos
 let lastQuote = null; // what the price cards show now, for the "Send" dialog
 let rateDate = ''; // date of the NBRB rate, e.g. "30.10.2026"
 let defaultPlace = document.getElementById('robinson');
@@ -31,12 +39,6 @@ modeButtons.forEach((btn) =>
 );
 
 // ================ CHECKING LETTERS
-// Physical letters in stock: a word can only be assembled from these
-const STOCK_LETTERS = [
-  'е', 'е', 'е', 'е', 'е', 'н', 'н', 'н', 'я', 'я', 'я', 'м', 'м', 'м', 'б', 'т', 'т',
-  'а', 'а', 'а', 'з', 'и', 'и', 'и', 'д', 'д', 'д', 'х', 'в', 'в', 'ы', 'ч', 'к', 'к',
-  'л', 'л', 'о', 'о', 'с', 'с', 'р', 'р', 'п', 'п', 'э', 'ж', 'ю', 'ш',
-];
 
 // Takes letters from the stock one by one; extra copies of a letter end up in "missing"
 function findLetters(word) {
@@ -404,9 +406,6 @@ async function postToRelay(body) {
   return res.json();
 }
 
-// iPhone: "audio/*" alone greys out MP3 files in the Files app, so the extensions are listed explicitly
-const ATTACH_ACCEPT = '.mp3,.m4a,.aac,.wav,.ogg,.flac,audio/mpeg,audio/mp4,audio/*,image/*';
-const AUDIO_TYPES = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav', ogg: 'audio/ogg', flac: 'audio/flac' };
 // Some phones give a file without a type (file.type === ''): take it from the extension
 function fileType(file) {
   if (file.type) return file.type;
@@ -492,7 +491,6 @@ async function uploadInBackground(request, file) {
     }
   }
 }
-
 
 // File name -> track name: no extension, no download ids / hashes, no underscores
 function trackName(fileName) {
@@ -873,39 +871,7 @@ function fitUnderHeader() {
 window.addEventListener('resize', fitUnderHeader);
 fitUnderHeader();
 
-// =====WEATHER — fixed location: Robinson Club, Minsk District (shore of the Minsk Sea)
-
-const ROBINSON_CLUB = { lat: 53.9508, lon: 27.3387 };
-const WEATHER_CODES = {
-  0: ['☀️', 'Clear'],
-  1: ['🌤️', 'Mainly clear'],
-  2: ['⛅', 'Partly cloudy'],
-  3: ['☁️', 'Overcast'],
-  45: ['🌫️', 'Fog'],
-  48: ['🌫️', 'Rime fog'],
-  51: ['🌦️', 'Light drizzle'],
-  53: ['🌦️', 'Drizzle'],
-  55: ['🌧️', 'Dense drizzle'],
-  56: ['🌧️', 'Freezing drizzle'],
-  57: ['🌧️', 'Freezing drizzle'],
-  61: ['🌧️', 'Light rain'],
-  63: ['🌧️', 'Rain'],
-  65: ['🌧️', 'Heavy rain'],
-  66: ['🌧️', 'Freezing rain'],
-  67: ['🌧️', 'Freezing rain'],
-  71: ['🌨️', 'Light snow'],
-  73: ['🌨️', 'Snow'],
-  75: ['❄️', 'Heavy snow'],
-  77: ['🌨️', 'Snow grains'],
-  80: ['🌦️', 'Rain showers'],
-  81: ['🌧️', 'Rain showers'],
-  82: ['⛈️', 'Violent rain showers'],
-  85: ['🌨️', 'Snow showers'],
-  86: ['❄️', 'Heavy snow showers'],
-  95: ['⛈️', 'Thunderstorm'],
-  96: ['⛈️', 'Thunderstorm with hail'],
-  99: ['⛈️', 'Thunderstorm with hail'],
-};
+// =====WEATHER (location and codes are in config.js)
 
 const weatherDate = document.getElementById('weatherDate');
 const weatherInfo = document.getElementById('weatherInfo');
