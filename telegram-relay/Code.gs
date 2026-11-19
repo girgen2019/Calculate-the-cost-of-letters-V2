@@ -12,7 +12,7 @@
  * Setup steps are in telegram-relay/README.md.
  */
 
-var RELAY_VERSION = 7;       // shown when the web app URL is opened: tells which code is deployed
+var RELAY_VERSION = 8;      // shown when the web app URL is opened: tells which code is deployed
 var MAX_PER_HOUR = 40;      // all requests together (a send with a track = 2 requests): protects your Telegram from spam
 var MAX_TEXT_LENGTH = 120;  // inscription length limit
 var MAX_MUSIC_LENGTH = 200; // music: track name or link
@@ -103,11 +103,24 @@ function formatMessage(d) {
     '🔥 <b>Заявка на шоу</b>',
     '📅 Дата мероприятия: <b>' + formatDate(d.eventDate) + '</b>',
     '✍️ Надпись: <b>' + esc(d.inscription) + '</b>' + (d.counts ? ' (' + esc(d.counts) + ')' : ''),
-    '💰 Без пиротехники: <b>' + num(d.usdNo) + ' USD</b>' + (isFinite(d.bynNo) ? ' / ' + num(d.bynNo) + ' BYN' : ''),
-    '💥 С пиротехникой: <b>' + num(d.usdYes) + ' USD</b>' + (isFinite(d.bynYes) ? ' / ' + num(d.bynYes) + ' BYN' : ''),
-    '🎵 Музыка: ' + (d.music ? esc(d.music) : 'не указана'),
-    '⚙️ Robinson club: ' + (d.robinson ? 'да' : 'нет') + ' · Double fountains: ' + (d.fountains ? 'да' : 'нет'),
   ];
+  if (isFinite(d.fountainsTotalUsd)) {
+    // Totals only, in USD and BYN; "Double fountains: да" shows the inscription + fountains total
+    lines.push(
+      '🎆 Double fountains: ' + (d.fountains ? 'да — <b>' + num(d.fountainsTotalUsd) + ' USD</b>' + byn(d.fountainsTotalByn) : 'нет'),
+      '🏝 Robinson club: ' + (d.robinson ? 'да' : 'нет'),
+      '💰 Без пиротехники: <b>' + num(d.usdNo) + ' USD</b>' + byn(d.bynNo),
+      '💥 С пиротехникой: <b>' + num(d.usdYes) + ' USD</b>' + byn(d.bynYes)
+    );
+  } else {
+    // A request from an older page without the parts of the sum
+    lines.push(
+      '💰 Без пиротехники: <b>' + num(d.usdNo) + ' USD</b>' + byn(d.bynNo),
+      '💥 С пиротехникой: <b>' + num(d.usdYes) + ' USD</b>' + byn(d.bynYes),
+      '⚙️ Robinson club: ' + (d.robinson ? 'да' : 'нет') + ' · Double fountains: ' + (d.fountains ? 'да' : 'нет')
+    );
+  }
+  lines.push('🎵 Музыка: ' + (d.music ? esc(d.music) : 'не указана'));
   if (d.rate) lines.push('💱 Курс НБРБ' + (d.rateDate ? ' на ' + esc(d.rateDate) : '') + ': ' + esc(String(d.rate)));
   if (d.weather) lines.push('🌦 Погода: ' + esc(d.weather));
   return lines.join('\n');
@@ -243,6 +256,11 @@ function esc(s) {
 
 function num(n) {
   return String(Math.round(Number(n)));
+}
+
+// " / 165 BYN", or nothing when the rate was unknown
+function byn(n) {
+  return n !== null && n !== '' && isFinite(n) ? ' / ' + num(n) + ' BYN' : '';
 }
 
 function formatDate(iso) {
