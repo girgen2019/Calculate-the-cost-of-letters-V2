@@ -503,7 +503,7 @@ function trackName(fileName) {
 function openSendDialog() {
   const inscription = document.getElementById('input').value.trim();
   if (!inscription || !lastQuote || document.querySelector('.letters-overlay')) return;
-  const quote = { ...lastQuote };
+  let quote = { ...lastQuote };
 
   const overlay = lettersEl('div', 'letters-overlay');
   const modal = lettersEl('div', 'letters-modal send-modal');
@@ -522,16 +522,30 @@ function openSendDialog() {
   // Options chosen in the calculator, then ONE total: with or without pyrotechnics, as the switch says.
   // Telegram gets the same: "Пиротехника: да/нет" and that total only.
   const summary = lettersEl('div', 'send-summary');
-  const options = lettersEl(
-    'div',
-    'send-prices',
-    `Double fountains: ${doublePyro.checked ? 'yes' : 'no'} · Robinson club: ${defaultPlace.checked ? 'yes' : 'no'}`
-  );
-  const pyroSwitch = lettersEl('label', 'send-switch');
-  const pyroInput = lettersEl('input', 'send-switch__input');
-  pyroInput.type = 'checkbox';
-  pyroInput.setAttribute('role', 'switch');
-  pyroSwitch.append(pyroInput, lettersEl('span', 'send-switch__track'), lettersEl('span', 'send-switch__text', 'With pyrotechnics'));
+  const options = lettersEl('div', 'send-prices', `Robinson club: ${defaultPlace.checked ? 'yes' : 'no'}`);
+  // A toggle in the calculator style: <label> with a hidden checkbox, the pill track and the text
+  function toggle(text, checked) {
+    const label = lettersEl('label', 'toggle');
+    const box = lettersEl('input', 'toggle__input');
+    box.type = 'checkbox';
+    box.checked = checked;
+    box.setAttribute('role', 'switch');
+    label.append(box, lettersEl('span', 'toggle__track'), lettersEl('span', 'toggle__text', text));
+    return { label, box };
+  }
+  // Double fountains starts as in the calculator; switching it here switches it there too,
+  // so the calculator recounts the prices and the total below stays exact
+  const fountains = toggle('Double fountains', doublePyro.checked);
+  fountains.box.addEventListener('change', () => {
+    if (doublePyro.checked !== fountains.box.checked) doublePyro.click();
+    quote = { ...lastQuote };
+    showTotal();
+    fountains.box.focus(); // the calculator moves the focus to its input; keep it in the dialog
+  });
+  const pyroToggle = toggle('With pyrotechnics', false);
+  const pyroInput = pyroToggle.box;
+  const toggles = lettersEl('div', 'send-toggles');
+  toggles.append(fountains.label, pyroToggle.label);
   const total = lettersEl('div', 'send-total');
   function showTotal() {
     const pyro = pyroInput.checked;
@@ -546,7 +560,7 @@ function openSendDialog() {
   }
   pyroInput.addEventListener('change', showTotal);
   showTotal();
-  summary.append(lettersEl('div', 'result__word', inscription), options, pyroSwitch, total);
+  summary.append(lettersEl('div', 'result__word', inscription), options, toggles, total);
 
   // Date: typed by hand as DD.MM.YYYY (the native field follows the browser locale, e.g. mm/dd/yyyy);
   // the real date input lies invisibly over the calendar icon and opens the picker

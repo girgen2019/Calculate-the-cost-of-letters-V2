@@ -892,53 +892,76 @@ img:hover {
   color: #b8bec6;
   font-size: 0.9rem;
 }
-/* "With pyrotechnics" switch: a pill with a knob; on = red, like the "With pyrotechnics" price card */
-.send-switch {
+/* Toggle: a pill with a knob; on = red, like the "With pyrotechnics" price card and the mode switch.
+   Used for the calculator options (Robinson club, Double fountains) and in the Send dialog.
+   --toggle-w / --toggle-h set the size; the knob size and travel follow from them. */
+.toggle {
+  --toggle-w: 46px;
+  --toggle-h: 26px;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  margin-top: 0.8rem;
   cursor: pointer;
   font-weight: 600;
   color: var(--main-text-color);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.send-switch__input {
+.toggle__input {
   position: absolute;
   opacity: 0;
   width: 1px;
   height: 1px;
+  pointer-events: none;
 }
-.send-switch__track {
+.toggle__track {
   position: relative;
   flex: none;
-  width: 46px;
-  height: 26px;
+  width: var(--toggle-w);
+  height: var(--toggle-h);
   border-radius: 999px;
   background-color: var(--secondary-color);
   box-shadow: 0 0 4px 2px rgba(122, 122, 122, 0.8);
   transition: background-color 0.25s ease;
 }
-.send-switch__track::after {
+.toggle__track::after {
   content: '';
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 20px;
-  height: 20px;
+  width: calc(var(--toggle-h) - 6px);
+  height: calc(var(--toggle-h) - 6px);
   border-radius: 50%;
   background-color: #b8bec6;
   transition: transform 0.25s ease, background-color 0.25s ease;
 }
-.send-switch__input:checked + .send-switch__track {
+.toggle__input:checked + .toggle__track {
   background-color: red;
 }
-.send-switch__input:checked + .send-switch__track::after {
-  transform: translateX(20px);
+.toggle__input:checked + .toggle__track::after {
+  transform: translateX(calc(var(--toggle-w) - var(--toggle-h)));
   background-color: #fff;
 }
-.send-switch__input:focus-visible + .send-switch__track {
+.toggle__input:focus-visible + .toggle__track {
   outline: 2px solid var(--main-text-color);
   outline-offset: 2px;
+}
+.toggle:hover .toggle__track::after {
+  background-color: #fff;
+}
+.toggle__text {
+  white-space: nowrap;
+}
+/* Calculator options: the label first, the toggle after it */
+.toggle--main {
+  font-size: 1rem;
+}
+/* Send dialog: two toggles in a row, wrapping on narrow screens */
+.send-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.5rem;
+  margin-top: 0.8rem;
 }
 /* The one total that goes to Telegram: green frame without pyrotechnics, red with, as the price cards */
 .send-total {
@@ -972,8 +995,8 @@ img:hover {
   color: #b8bec6;
 }
 @media (prefers-reduced-motion: reduce) {
-  .send-switch__track,
-  .send-switch__track::after,
+  .toggle__track,
+  .toggle__track::after,
   .send-total {
     transition: none;
   }
@@ -1189,4 +1212,75 @@ audio.send-preview__media {
   color: var(--main-text-color);
   background-color: var(--secondary-color);
   box-shadow: 0 0 4px 2px rgba(122, 122, 122, 0.8);
+}
+
+/* ===== Options row: heart · Robinson club · Double fountains · Price | Letters =====
+   One grid with equal gaps between the four items. Each option is a small uppercase caption (like the
+   price card captions) with the toggle under it, starting at its left edge and taking more than half of
+   its width. Placed last so it wins over the old checkbox label rules above. */
+.container__controls {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem 1.25rem;
+}
+.container__controls .heart__controls,
+.container__controls .container__Label {
+  margin: 0;
+}
+.container__controls .mode-switch {
+  margin-left: 0;
+}
+.toggle--main {
+  --toggle-w: 74px;
+  --toggle-h: 34px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #b8bec6;
+  transition: color 0.2s ease;
+}
+.toggle--main:hover,
+.toggle--main:has(.toggle__input:checked) {
+  color: var(--main-text-color);
+}
+@media screen and (max-width: 540px) {
+  .container__controls {
+    gap: 0.6rem 0.7rem;
+  }
+  .toggle--main {
+    --toggle-w: 46px;
+    --toggle-h: 26px;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+  }
+}
+@media screen and (max-width: 540px) {
+  /* Phones and small tablets: ROBINSON / CLUB and DOUBLE / FOUNTAINS on two lines, so the toggle
+     takes most of the caption width */
+  .toggle--main .toggle__text {
+    white-space: normal;
+    max-width: 6.5em;
+    line-height: 1.2;
+  }
+}
+@media screen and (max-width: 440px) {
+  .heart__controls {
+    width: 40px;
+    height: 40px;
+  }
+}
+@media screen and (max-width: 359px) {
+  .container__controls {
+    gap: 0.5rem;
+  }
+  .toggle--main {
+    --toggle-w: 40px;
+    --toggle-h: 22px;
+    font-size: 0.56rem;
+  }
 }

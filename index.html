@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Montserrat:wght@100;200;300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style-calc.css?v=20261119h">
+    <link rel="stylesheet" href="style-calc.css?v=20261119s">
     <title>Сalculator</title>
     <link rel="icon" type="image/x-icon" href="./assets/calculator-fav.png">
 </head>
@@ -56,15 +56,17 @@
 
                 <input type="image" class="heart__controls" id="heart" src="./assets/Heart.png" />
 
-                <label class="container__Label">Robinson club
-
-                    <input type="checkbox" id="robinson" checked>
-                    <span class="checkmark"></span>
+                <!-- Options as toggles (same look as the "With pyrotechnics" switch in the Send dialog) -->
+                <label class="container__Label toggle toggle--main">
+                    <span class="toggle__text">Robinson club</span>
+                    <input type="checkbox" class="toggle__input" id="robinson" role="switch" checked>
+                    <span class="toggle__track" aria-hidden="true"></span>
                 </label>
 
-                <label class="container__Label">Double fountains
-                    <input type="checkbox" id="double">
-                    <span class="checkmark"></span>
+                <label class="container__Label toggle toggle--main">
+                    <span class="toggle__text">Double fountains</span>
+                    <input type="checkbox" class="toggle__input" id="double" role="switch">
+                    <span class="toggle__track" aria-hidden="true"></span>
                 </label>
                 <!-- Mode switch: Price = the calculator, Letters = opens the letters check -->
                 <div class="mode-switch" role="group" aria-label="Mode" data-active="price">
@@ -82,7 +84,7 @@
             </div>
         </div>
     </main>
-    <script type="module" src="./js_App-calc.js?v=20261119h"></script>
+    <script type="module" src="./js_App-calc.js?v=20261119s"></script>
 
 </body>
 
