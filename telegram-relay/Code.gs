@@ -12,7 +12,7 @@
  * Setup steps are in telegram-relay/README.md.
  */
 
-var RELAY_VERSION = 8;      // shown when the web app URL is opened: tells which code is deployed
+var RELAY_VERSION = 9;     // shown when the web app URL is opened: tells which code is deployed
 var MAX_PER_HOUR = 40;      // all requests together (a send with a track = 2 requests): protects your Telegram from spam
 var MAX_TEXT_LENGTH = 120;  // inscription length limit
 var MAX_MUSIC_LENGTH = 200; // music: track name or link
@@ -104,16 +104,18 @@ function formatMessage(d) {
     '📅 Дата мероприятия: <b>' + formatDate(d.eventDate) + '</b>',
     '✍️ Надпись: <b>' + esc(d.inscription) + '</b>' + (d.counts ? ' (' + esc(d.counts) + ')' : ''),
   ];
-  if (isFinite(d.fountainsTotalUsd)) {
-    // Totals only, in USD and BYN; "Double fountains: да" shows the inscription + fountains total
+  if (typeof d.pyro === 'boolean') {
+    // Options as да/нет and ONE total: with pyrotechnics if it was switched on in the send dialog, else without
     lines.push(
-      '🎆 Double fountains: ' + (d.fountains ? 'да — <b>' + num(d.fountainsTotalUsd) + ' USD</b>' + byn(d.fountainsTotalByn) : 'нет'),
+      '🎆 Double fountains: ' + (d.fountains ? 'да' : 'нет'),
       '🏝 Robinson club: ' + (d.robinson ? 'да' : 'нет'),
-      '💰 Без пиротехники: <b>' + num(d.usdNo) + ' USD</b>' + byn(d.bynNo),
-      '💥 С пиротехникой: <b>' + num(d.usdYes) + ' USD</b>' + byn(d.bynYes)
+      '💥 Пиротехника: ' + (d.pyro ? 'да' : 'нет'),
+      d.pyro
+        ? '💰 Итого с пиротехникой: <b>' + num(d.usdYes) + ' USD</b>' + byn(d.bynYes)
+        : '💰 Итого без пиротехники: <b>' + num(d.usdNo) + ' USD</b>' + byn(d.bynNo)
     );
   } else {
-    // A request from an older page without the parts of the sum
+    // A request from an older page: both totals
     lines.push(
       '💰 Без пиротехники: <b>' + num(d.usdNo) + ' USD</b>' + byn(d.bynNo),
       '💥 С пиротехникой: <b>' + num(d.usdYes) + ' USD</b>' + byn(d.bynYes),
