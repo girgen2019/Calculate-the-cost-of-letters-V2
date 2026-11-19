@@ -196,6 +196,17 @@ function getResult(chars, usdNo, usdYes, bynNo, bynYes, counts) {
         usdYes: usdYes + venue,
         bynNo: byn(bynNo),
         bynYes: byn(bynYes),
+        // The parts of the sum, for the Send dialog and Telegram: letters + fountains + Robinson club = without
+        // pyrotechnics; + pyrotechnics = with. Letters take the rounding, so the parts always add up to the totals
+        lettersUsd: usdNo - addDoubleFountain(),
+        fountainsUsd: addDoubleFountain(),
+        // Inscription + double fountains (no Robinson club), for the Telegram "Double fountains" line
+        fountainsTotalUsd: usdNo,
+        fountainsTotalByn: USD_RATES ? bynNo : null,
+        robinsonUsd: venue,
+        pyroUsd: usdYes - usdNo,
+        units: counts.letters + counts.hearts,
+        hearts: counts.hearts,
         counts:
           (counts.letters ? ruPlural(counts.letters, 'буква', 'буквы', 'букв') : '') +
           (counts.letters && counts.hearts ? ' + ' : '') +
@@ -500,6 +511,28 @@ function trackName(fileName) {
     .trim();
 }
 
+// The price as an addition, e.g.
+//   Double fountains: yes, 16 USD
+//   Robinson club: yes, 5 USD
+//   Letters 34 + Fountains 16 + Robinson club 5 = 55 USD without pyrotechnics
+//   55 + Pyrotechnics 32 (4 × 8) = 87 USD with pyrotechnics
+function quoteLines(q) {
+  const inscription = q.hearts ? 'Letters + hearts' : 'Letters';
+  const parts = [[inscription, q.lettersUsd], ['Fountains', q.fountainsUsd], ['Robinson club', q.robinsonUsd]]
+    .filter(([, usd]) => usd)
+    .map(([label, usd]) => `${label} ${formatUsd(usd)}`);
+  return [
+    // yes: the inscription plus the fountains as an addition and their total
+    'Double fountains: ' +
+      (q.fountainsUsd
+        ? `yes — ${inscription} ${formatUsd(q.lettersUsd)} + Fountains ${q.fountainsUsd} = ${formatUsd(q.lettersUsd + q.fountainsUsd)} USD`
+        : 'no'),
+    'Robinson club: ' + (q.robinsonUsd ? `yes, ${q.robinsonUsd} USD` : 'no'),
+    `${parts.join(' + ')} = ${q.usdNo} USD without pyrotechnics`,
+    `${q.usdNo} + Pyrotechnics ${q.pyroUsd} (${q.units} × ${PRICE.PYRO_PER_UNIT}) = ${q.usdYes} USD with pyrotechnics`,
+  ];
+}
+
 function openSendDialog() {
   const inscription = document.getElementById('input').value.trim();
   if (!inscription || !lastQuote || document.querySelector('.letters-overlay')) return;
@@ -522,7 +555,7 @@ function openSendDialog() {
   const summary = lettersEl('div', 'send-summary');
   summary.append(
     lettersEl('div', 'result__word', inscription),
-    lettersEl('div', 'send-prices', `${quote.usdNo} USD without pyrotechnics · ${quote.usdYes} USD with pyrotechnics`)
+    ...quoteLines(quote).map((line) => lettersEl('div', 'send-prices', line))
   );
 
   // Date: typed by hand as DD.MM.YYYY (the native field follows the browser locale, e.g. mm/dd/yyyy);
@@ -697,6 +730,14 @@ function openSendDialog() {
       usdYes: quote.usdYes,
       bynNo: quote.bynNo,
       bynYes: quote.bynYes,
+      lettersUsd: quote.lettersUsd,
+      fountainsTotalUsd: quote.fountainsTotalUsd,
+      fountainsTotalByn: quote.fountainsTotalByn,
+      fountainsUsd: quote.fountainsUsd,
+      robinsonUsd: quote.robinsonUsd,
+      pyroUsd: quote.pyroUsd,
+      units: quote.units,
+      hearts: quote.hearts,
       robinson: defaultPlace.checked,
       fountains: doublePyro.checked,
       rate: USD_RATES || null,
