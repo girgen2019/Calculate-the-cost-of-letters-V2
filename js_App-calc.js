@@ -18,7 +18,7 @@ import {
   UPLOAD_ATTEMPTS,
   MAX_MUSIC_LENGTH,
 } from './config.js?v=20261119b';
-import { basePrices } from './domain/pricing.js?v=20261119c';
+import { basePrices, fountainsPrice, robinsonPrice } from './domain/pricing.js?v=20261119d';
 
 // The main input, declared explicitly instead of the browser's automatic global for id="input"
 const input = document.getElementById('input');
@@ -323,7 +323,7 @@ function prepareResult(array) {
   const { usdNo: resultNoPyrotechnics, usdYes: resultWithPyrotechnics } = basePrices(
     sumLetters,
     sumHearts,
-    addDoubleFountain()
+    doublePyro.checked
   );
 
   let resultNoPyrotechnicsBYN = Math.ceil(USD_RATES * resultNoPyrotechnics);
@@ -340,21 +340,12 @@ function prepareResult(array) {
 }
 
 function addDoubleFountain() {
-  if (doublePyro.checked) {
-    return PRICE.DOUBLE_FOUNTAINS;
-  } else {
-    return 0;
-  }
+  return fountainsPrice(doublePyro.checked);
 }
 
 function addFiveBaks() {
-  if (defaultPlace.checked) {
-    input.focus();
-    return PRICE.ROBINSON_CLUB;
-  } else {
-    input.focus();
-    return 0;
-  }
+  input.focus();
+  return robinsonPrice(defaultPlace.checked);
 }
 
 function checkString(str) {

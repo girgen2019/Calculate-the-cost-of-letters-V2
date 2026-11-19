@@ -10,12 +10,17 @@ export function discountedSum(letters, hearts) {
   );
 }
 
+// Options in USD: on = the checkbox is ticked
+export const fountainsPrice = (on) => (on ? PRICE.DOUBLE_FOUNTAINS : 0);
+export const robinsonPrice = (on) => (on ? PRICE.ROBINSON_CLUB : 0);
+
 // Both prices in USD, rounded up; the Robinson club surcharge is added later, on top.
-// fountains — the "Double fountains" surcharge in USD
+// fountains — is "Double fountains" ticked
 export function basePrices(letters, hearts, fountains) {
   const discounted = discountedSum(letters, hearts);
+  const options = fountainsPrice(fountains);
   return {
-    usdNo: Math.ceil(discounted + fountains),
-    usdYes: Math.ceil(discounted + (letters + hearts) * PRICE.PYRO_PER_UNIT + fountains),
+    usdNo: Math.ceil(discounted + options),
+    usdYes: Math.ceil(discounted + (letters + hearts) * PRICE.PYRO_PER_UNIT + options),
   };
 }
