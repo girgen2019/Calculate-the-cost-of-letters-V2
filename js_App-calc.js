@@ -18,6 +18,7 @@ import {
   UPLOAD_ATTEMPTS,
   MAX_MUSIC_LENGTH,
 } from './config.js?v=20261119b';
+import { basePrices } from './domain/pricing.js?v=20261119c';
 
 // The main input, declared explicitly instead of the browser's automatic global for id="input"
 const input = document.getElementById('input');
@@ -318,13 +319,11 @@ function prepareResult(array) {
     (letters) => !letters.includes(heartCharCode)
   ).length;
 
-  // Everything above DISCOUNT_FROM costs half: (sum - 30) / 2 + 30
-  const discounted =
-    (sumLetters * PRICE.LETTER + sumHearts * PRICE.HEART - PRICE.DISCOUNT_FROM) / PRICE.DISCOUNT_DIVIDER +
-    PRICE.DISCOUNT_FROM;
-  let resultNoPyrotechnics = Math.ceil(discounted + addDoubleFountain());
-  let resultWithPyrotechnics = Math.ceil(
-    discounted + (sumLetters + sumHearts) * PRICE.PYRO_PER_UNIT + addDoubleFountain()
+  // The formula lives in domain/pricing.js
+  const { usdNo: resultNoPyrotechnics, usdYes: resultWithPyrotechnics } = basePrices(
+    sumLetters,
+    sumHearts,
+    addDoubleFountain()
   );
 
   let resultNoPyrotechnicsBYN = Math.ceil(USD_RATES * resultNoPyrotechnics);
