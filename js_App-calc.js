@@ -9,7 +9,15 @@ import {
   STOCK_LETTERS,
   ROBINSON_CLUB,
   WEATHER_CODES,
-} from './config.js?v=20261119a';
+  FORECAST_DAYS,
+  NBRB_USD_RATE_URL,
+  PRICE,
+  HEART_CHAR_CODE,
+  LAYOUT,
+  TIMING,
+  UPLOAD_ATTEMPTS,
+  MAX_MUSIC_LENGTH,
+} from './config.js?v=20261119b';
 
 // The main input, declared explicitly instead of the browser's automatic global for id="input"
 const input = document.getElementById('input');
@@ -20,7 +28,7 @@ let defaultPlace = document.getElementById('robinson');
 let defaultPlaceFocus = document.querySelector('.container__controls');
 let doublePyro = document.getElementById('double');
 let heartClick = document.getElementById('heart');
-const heartCharCode = String.fromCharCode(10084);
+const heartCharCode = String.fromCharCode(HEART_CHAR_CODE);
 
 // ================ MODE SWITCH: Price | Letters
 const modeSwitch = document.querySelector('.mode-switch');
@@ -134,7 +142,7 @@ function openLettersCheck() {
       input.focus();
     };
     overlay.addEventListener('animationend', (e) => e.target === overlay && done());
-    setTimeout(() => overlay.isConnected && done(), 400); // fallback if animations are off
+    setTimeout(() => overlay.isConnected && done(), TIMING.DIALOG_CLOSE_FALLBACK_MS); // fallback if animations are off
   }
   function onKey(e) {
     if (e.key === 'Escape') close();
@@ -149,7 +157,7 @@ function openLettersCheck() {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   render();
-  setTimeout(() => field.focus(), 50);
+  setTimeout(() => field.focus(), TIMING.FOCUS_DELAY_MS);
 }
 
 doublePyro.addEventListener('change', () => {
@@ -208,7 +216,7 @@ function getResult(chars, usdNo, usdYes, bynNo, bynYes, counts) {
 // stay under the hood and are not shown as separate lines.
 function breakdownRows({ letters, hearts }, venue, totalNo, totalYes) {
   const fountains = addDoubleFountain();
-  const pyro = (letters + hearts) * 8;
+  const pyro = (letters + hearts) * PRICE.PYRO_PER_UNIT;
   // One line for the inscription with the discount (and rounding) already applied:
   // it is whatever the formula gives without the options, so the lines always add up to the totals
   const inscription = totalNo - venue - fountains;
@@ -219,7 +227,7 @@ function breakdownRows({ letters, hearts }, venue, totalNo, totalYes) {
   if (fountains) rows.push(['Double fountains', fountains]);
   if (venue) rows.push(['Robinson club', venue]);
   rows.push(['Without pyrotechnics', totalNo, 'total']);
-  rows.push([`Pyrotechnics ${letters + hearts} × 8`, pyro]);
+  rows.push([`Pyrotechnics ${letters + hearts} × ${PRICE.PYRO_PER_UNIT}`, pyro]);
   rows.push(['With pyrotechnics', totalYes, 'total accent']);
   return rows;
 }
@@ -250,7 +258,7 @@ function renderResult(chars, prices, rows) {
   });
 
   const details = lettersEl('details', 'breakdown');
-  if (breakdownOpen === null) breakdownOpen = window.innerHeight >= 900;
+  if (breakdownOpen === null) breakdownOpen = window.innerHeight >= LAYOUT.BREAKDOWN_OPEN_MIN_HEIGHT;
   details.open = breakdownOpen;
   details.addEventListener('toggle', () => {
     breakdownOpen = details.open;
@@ -295,29 +303,28 @@ function renderResult(chars, prices, rows) {
 // only the letter tiles scroll, so the prices always stay visible
 function fitResult() {
   const output = document.getElementById('output');
-  const free = window.innerHeight - output.getBoundingClientRect().top - 16;
+  const free = window.innerHeight - output.getBoundingClientRect().top - LAYOUT.RESULT_BOTTOM_GAP;
   // Too little room (phone in landscape): no limit, the page scrolls instead (see CSS max-height: 520px)
-  output.style.maxHeight = free >= 260 ? free + 'px' : '';
+  output.style.maxHeight = free >= LAYOUT.RESULT_MIN_HEIGHT ? free + 'px' : '';
 }
 window.addEventListener('resize', fitResult);
 
 function prepareResult(array) {
   let sumHearts = array.filter((hearts) => {
-    return hearts.trim().charCodeAt() === 10084;
+    return hearts.trim().charCodeAt() === HEART_CHAR_CODE;
   }).length;
 
   let sumLetters = array.filter(
     (letters) => !letters.includes(heartCharCode)
   ).length;
 
-  let resultNoPyrotechnics = Math.ceil(
-    (sumLetters * 15 + sumHearts * 25 - 30) / 2 + 30 + addDoubleFountain()
-  );
+  // Everything above DISCOUNT_FROM costs half: (sum - 30) / 2 + 30
+  const discounted =
+    (sumLetters * PRICE.LETTER + sumHearts * PRICE.HEART - PRICE.DISCOUNT_FROM) / PRICE.DISCOUNT_DIVIDER +
+    PRICE.DISCOUNT_FROM;
+  let resultNoPyrotechnics = Math.ceil(discounted + addDoubleFountain());
   let resultWithPyrotechnics = Math.ceil(
-    (sumLetters * 15 + sumHearts * 25 - 30) / 2 +
-      30 +
-      (sumLetters + sumHearts) * 8 +
-      addDoubleFountain()
+    discounted + (sumLetters + sumHearts) * PRICE.PYRO_PER_UNIT + addDoubleFountain()
   );
 
   let resultNoPyrotechnicsBYN = Math.ceil(USD_RATES * resultNoPyrotechnics);
@@ -335,7 +342,7 @@ function prepareResult(array) {
 
 function addDoubleFountain() {
   if (doublePyro.checked) {
-    return 16;
+    return PRICE.DOUBLE_FOUNTAINS;
   } else {
     return 0;
   }
@@ -344,7 +351,7 @@ function addDoubleFountain() {
 function addFiveBaks() {
   if (defaultPlace.checked) {
     input.focus();
-    return 5;
+    return PRICE.ROBINSON_CLUB;
   } else {
     input.focus();
     return 0;
@@ -431,7 +438,7 @@ function showUploadToast(text, state) {
   clearTimeout(toast.hideTimer);
   toast.textContent = text;
   toast.className = 'send-toast' + (state ? ' is-' + state : '');
-  if (state) toast.hideTimer = setTimeout(() => toast.remove(), state === 'ok' ? 4000 : 9000);
+  if (state) toast.hideTimer = setTimeout(() => toast.remove(), state === 'ok' ? TIMING.TOAST_OK_MS : TIMING.TOAST_ERROR_MS);
 }
 
 // Uploads the attached file after the request; the page warns before closing while it is in progress
@@ -454,7 +461,7 @@ async function uploadInBackground(request, file) {
     window.removeEventListener('beforeunload', warn);
     document.removeEventListener('visibilitychange', onVisibility);
   };
-  for (let attempt = 1; attempt <= 3; attempt++) {
+  for (let attempt = 1; attempt <= UPLOAD_ATTEMPTS; attempt++) {
     showUploadToast(
       attempt === 1 ? `🎵 Uploading ${what.toLowerCase()}… keep this page open` : `🎵 Resuming ${what.toLowerCase()} upload…`
     );
@@ -470,7 +477,7 @@ async function uploadInBackground(request, file) {
       return;
     } catch (err) {
       // Network broke: if the page was in the background, wait until it is visible again and retry
-      if (attempt < 3 && (wentHidden || document.hidden)) {
+      if (attempt < UPLOAD_ATTEMPTS && (wentHidden || document.hidden)) {
         showUploadToast(`⏸ ${what} upload paused — it continues when this page is open`);
         if (document.hidden) {
           await new Promise((resolve) => {
@@ -562,7 +569,7 @@ function openSendDialog() {
   const musicLabel = lettersEl('label', 'send-label', 'Music');
   const musicInput = lettersEl('input', 'letters-input send-field send-music');
   musicInput.type = 'text';
-  musicInput.maxLength = 200;
+  musicInput.maxLength = MAX_MUSIC_LENGTH;
   musicInput.placeholder = 'Track name or link (optional)';
   musicLabel.appendChild(musicInput);
 
@@ -663,7 +670,7 @@ function openSendDialog() {
       document.getElementById('input').focus();
     };
     overlay.addEventListener('animationend', (e) => e.target === overlay && done());
-    setTimeout(() => overlay.isConnected && done(), 400);
+    setTimeout(() => overlay.isConnected && done(), TIMING.DIALOG_CLOSE_FALLBACK_MS);
   }
   function onKey(e) {
     if (e.key === 'Escape') close();
@@ -724,7 +731,7 @@ function openSendDialog() {
       status.className = 'send-status is-ok';
       // replaceToken: the relay swaps the text message for the track, so the chat gets one message
       if (file) uploadInBackground({ ...request, kind: 'file', replaceToken: result.replaceToken }, file);
-      setTimeout(close, attachment ? 700 : 1500);
+      setTimeout(close, attachment ? TIMING.CLOSE_AFTER_SEND_WITH_FILE_MS : TIMING.CLOSE_AFTER_SEND_MS);
     } catch (err) {
       status.textContent = '❌ Not sent: ' + (err.message === 'Failed to fetch' ? 'no connection' : err.message);
       status.className = 'send-status is-error';
@@ -799,7 +806,7 @@ function openSendDialog() {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   refresh();
-  setTimeout(() => dateText.focus(), 50);
+  setTimeout(() => dateText.focus(), TIMING.FOCUS_DELAY_MS);
 }
 
 document.getElementById('inputSend').addEventListener('click', openSendDialog);
@@ -821,7 +828,7 @@ defaultPlaceFocus.addEventListener('fullscreenchange', () => {
 
 // =====API
 
-fetch('https://api.nbrb.by/exrates/rates/431')
+fetch(NBRB_USD_RATE_URL)
   .then((rates) => {
     if (!rates.ok) throw new Error('NBRB API status ' + rates.status);
     return rates.json();
@@ -865,7 +872,7 @@ function chipPart(tag, className, text) {
 // The header height changes with the screen width and its content, so keep the form right under it
 function fitUnderHeader() {
   const header = document.querySelector('.topbar');
-  document.querySelector('.main').style.paddingTop = header.offsetHeight + 12 + 'px';
+  document.querySelector('.main').style.paddingTop = header.offsetHeight + LAYOUT.HEADER_GAP + 'px';
   fitResult();
 }
 window.addEventListener('resize', fitUnderHeader);
@@ -881,7 +888,7 @@ fetch(
   'https://api.open-meteo.com/v1/forecast' +
     `?latitude=${ROBINSON_CLUB.lat}&longitude=${ROBINSON_CLUB.lon}` +
     '&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max' +
-    '&timezone=Europe%2FMinsk&forecast_days=16'
+    `&timezone=Europe%2FMinsk&forecast_days=${FORECAST_DAYS}`
 )
   .then((res) => {
     if (!res.ok) throw new Error('Open-Meteo status ' + res.status);
