@@ -1,6 +1,4 @@
 /** @format */
-// Fixed values of the calculator in one place: prices, addresses, limits, letters in stock, weather, layout and timings.
-// js_App-calc.js imports them; change a value here, not in the code.
 
 // ================ PRICES (USD)
 export const PRICE = {
@@ -9,8 +7,8 @@ export const PRICE = {
   DISCOUNT_FROM: 30, // everything above 30 USD costs half: (sum - 30) / 2 + 30
   DISCOUNT_DIVIDER: 2,
   PYRO_PER_UNIT: 8, // pyrotechnics for each letter or heart
-  DOUBLE_FOUNTAINS: 16, // "Double fountains" option
-  ROBINSON_CLUB: 5, // "Robinson club" venue surcharge
+  DOUBLE_FOUNTAINS: 16, // "Double fountains" 
+  ROBINSON_CLUB: 5, // "Robinson club" 
 };
 export const HEART_CHAR_CODE = 10084; // ❤
 
@@ -18,16 +16,13 @@ export const HEART_CHAR_CODE = 10084; // ❤
 export const NBRB_USD_RATE_URL = 'https://api.nbrb.by/exrates/rates/431'; // 431 = USD in the NBRB API
 
 // ================ TELEGRAM
-// URL of the Google Apps Script web app (telegram-relay/Code.gs) that sends requests to Telegram.
-// Empty = the ➤ "Send" button stays hidden. The bot token is NOT here: it lives only in the script's properties.
 export const TELEGRAM_RELAY_URL = 'https://script.google.com/macros/s/AKfycbzkYke_RsojWBlxxdiOMdLuSNZpBQsiwseX_D7mP6pSy-3jwwMD1_P8QihiV23gO1iE2w/exec';
-export const SEND_COOLDOWN_MS = 30000; // one request per 30 s from this browser
-export const MAX_AUDIO_MB = 20; // attachment limits: Telegram bots can upload up to 50 MB, a phone upload must stay quick
-export const MAX_IMAGE_MB = 10; // Telegram's limit for photos
-// iPhone: "audio/*" alone greys out MP3 files in the Files app, so the extensions are listed explicitly
+export const SEND_COOLDOWN_MS = 30000; 
+export const MAX_AUDIO_MB = 20; 
+export const MAX_IMAGE_MB = 10; 
 export const ATTACH_ACCEPT = '.mp3,.m4a,.aac,.wav,.ogg,.flac,audio/mpeg,audio/mp4,audio/*,image/*';
-export const MAX_MUSIC_LENGTH = 200; // music field: track name or link
-export const UPLOAD_ATTEMPTS = 3; // a phone upload is retried when the page comes back from the background
+export const MAX_MUSIC_LENGTH = 200; 
+export const UPLOAD_ATTEMPTS = 3; 
 export const AUDIO_TYPES = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav', ogg: 'audio/ogg', flac: 'audio/flac' };
 
 // ================ LETTERS CHECK
