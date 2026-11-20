@@ -69,16 +69,32 @@ git clone https://github.com/girgen2019/Calculate-the-cost-of-letters-V2.git
 cd Calculate-the-cost-of-letters-V2
 ```
 
-Open `index.html` in a browser. An internet connection is needed for the exchange rate, the weather forecast and Google Fonts.
+The script is an ES module, so open the page through any local server, not by double-clicking `index.html`
+(browsers block modules on `file://`): for example `npx serve` or **Open with Live Server** in VS Code.
+An internet connection is needed for the exchange rate, the weather forecast and Google Fonts.
+
+## Tests
+
+```bash
+npm test
+```
+
+Node's built-in test runner, no dependencies and no browser: the tests import the pure logic from `domain/`.
+Now covered: `domain/inscription.js` (letters, hearts, spaces, upper case).
 
 ## Project structure
 
 ```
-index.html          page layout: input, options, result block, video background
-js_App-calc.js      price calculation, letters check, NBRB rate and Open-Meteo weather
-style-calc.css      styles and responsive breakpoints
-assets/             background video (webm + mp4), icons, favicon
-docs/screenshot.png screenshot for this README
+index.html            page layout: input, options, result block, video background
+js_App-calc.js        page logic: result, letters check, send dialog, NBRB rate and Open-Meteo weather
+config.js             prices, limits, addresses, layout sizes and timings in one place
+domain/pricing.js     the price formula (pure, no page code)
+domain/inscription.js text -> characters, letters, hearts (pure, no page code)
+tests/                npm test
+style-calc.css        styles and responsive breakpoints
+telegram-relay/       Google Apps Script that sends requests to Telegram
+assets/               background video (webm + mp4), icons, favicon
+docs/screenshot.png   screenshot for this README
 ```
 
 GitHub Pages lets browsers cache files for 10 minutes, so `index.html` loads the CSS and JS with a version

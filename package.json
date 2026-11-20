@@ -1,0 +1,9 @@
+{
+  "name": "letters-cost-calculator",
+  "private": true,
+  "description": "Letters cost calculator: price of a fire inscription, sent to Telegram",
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\""
+  }
+}
