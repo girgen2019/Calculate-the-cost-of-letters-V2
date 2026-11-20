@@ -12,14 +12,13 @@ import {
   FORECAST_DAYS,
   NBRB_USD_RATE_URL,
   PRICE,
-  HEART_CHAR_CODE,
   LAYOUT,
   TIMING,
   UPLOAD_ATTEMPTS,
   MAX_MUSIC_LENGTH,
 } from './config.js?v=20261119b';
 import { basePrices, fountainsPrice, robinsonPrice } from './domain/pricing.js?v=20261119d';
-import { HEART, isHeart, parseInscription } from './domain/inscription.js?v=20261120b';
+import { HEART, isHeart, parseInscription } from './domain/inscription.js?v=20261120c';
 
 // The main input, declared explicitly instead of the browser's automatic global for id="input"
 const input = document.getElementById('input');
@@ -310,15 +309,8 @@ function fitResult() {
 }
 window.addEventListener('resize', fitResult);
 
-function prepareResult(array) {
-  let sumHearts = array.filter((hearts) => {
-    return hearts.trim().charCodeAt() === HEART_CHAR_CODE;
-  }).length;
-
-  let sumLetters = array.filter(
-    (letters) => !letters.includes(HEART)
-  ).length;
-
+// inscription: { chars, letters, hearts } from parseInscription — counted once, in domain/inscription.js
+function prepareResult({ chars, letters: sumLetters, hearts: sumHearts }) {
   // The formula lives in domain/pricing.js
   const { usdNo: resultNoPyrotechnics, usdYes: resultWithPyrotechnics } = basePrices(
     sumLetters,
@@ -330,7 +322,7 @@ function prepareResult(array) {
   let resultWithPyrotechnicsBYN = Math.ceil(USD_RATES * resultWithPyrotechnics);
 
   getResult(
-    array,
+    chars,
     resultNoPyrotechnics,
     resultWithPyrotechnics,
     resultNoPyrotechnicsBYN,
@@ -350,7 +342,7 @@ function addFiveBaks() {
 
 // The text is split into characters in domain/inscription.js
 function checkString(str) {
-  prepareResult(parseInscription(str).chars);
+  prepareResult(parseInscription(str));
 }
 
 function addHeart() {
