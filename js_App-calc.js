@@ -207,7 +207,8 @@ function getResult(chars, usdNo, usdYes, bynNo, bynYes, counts) {
       { label: 'Without pyrotechnics', usd: usdNo + venue, byn: byn(bynNo) },
       { label: 'With pyrotechnics', usd: usdYes + venue, byn: byn(bynYes), accent: true },
     ],
-    breakdownRows(counts, venue, usdNo + venue, usdYes + venue)
+    breakdownRows(counts, venue, usdNo + venue, usdYes + venue),
+    counts
   );
 }
 
@@ -236,7 +237,8 @@ const formatUsd = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 // Breakdown open/closed: open on tall screens by default, then the viewer's choice is kept
 let breakdownOpen = null;
 
-function renderResult(chars, prices, rows) {
+// counts: { letters, hearts, units } from parseInscription — not counted again here
+function renderResult(chars, prices, rows, { letters, hearts, units }) {
   const output = document.getElementById('output');
   if (!chars.length) {
     output.replaceChildren(lettersEl('p', 'result__empty', 'Type an inscription to see the price'));
@@ -273,12 +275,10 @@ function renderResult(chars, prices, rows) {
   });
   details.appendChild(table);
 
-  const letters = chars.filter((ch) => !isHeart(ch)).length;
-  const hearts = chars.length - letters;
   const head = lettersEl('div', 'letters-group__head');
   head.append(
     lettersEl('span', 'letters-group__label', 'Inscription'),
-    lettersEl('span', 'letters-badge', chars.length + (chars.length > 1 ? ' units' : ' unit')),
+    lettersEl('span', 'letters-badge', units + (units > 1 ? ' units' : ' unit')),
     lettersEl(
       'span',
       'result__counts',
@@ -310,7 +310,8 @@ function fitResult() {
 window.addEventListener('resize', fitResult);
 
 // inscription: { chars, letters, hearts } from parseInscription — counted once, in domain/inscription.js
-function prepareResult({ chars, letters: sumLetters, hearts: sumHearts }) {
+function prepareResult(inscription) {
+  const { chars, letters: sumLetters, hearts: sumHearts } = inscription;
   // The formula lives in domain/pricing.js
   const { usdNo: resultNoPyrotechnics, usdYes: resultWithPyrotechnics } = basePrices(
     sumLetters,
@@ -327,7 +328,7 @@ function prepareResult({ chars, letters: sumLetters, hearts: sumHearts }) {
     resultWithPyrotechnics,
     resultNoPyrotechnicsBYN,
     resultWithPyrotechnicsBYN,
-    { letters: sumLetters, hearts: sumHearts }
+    inscription // letters, hearts and units for the price breakdown, the Telegram text and the result
   );
 }
 
