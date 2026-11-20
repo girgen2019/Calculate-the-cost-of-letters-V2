@@ -6,3 +6,13 @@ import { HEART_CHAR_CODE } from '../config.js?v=20261119b';
 export const HEART = String.fromCharCode(HEART_CHAR_CODE);
 
 export const isHeart = (ch) => ch === HEART;
+
+// Text from the input -> its characters: lower case, spaces dropped.
+// "Мама ❤" -> { chars: ['м', 'а', 'м', 'а', '❤'] }
+export function parseInscription(text) {
+  const chars = String(text)
+    .toLowerCase()
+    .split('')
+    .filter((ch) => ch.trim());
+  return { chars };
+}

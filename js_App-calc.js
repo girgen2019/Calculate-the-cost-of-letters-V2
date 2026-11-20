@@ -19,7 +19,7 @@ import {
   MAX_MUSIC_LENGTH,
 } from './config.js?v=20261119b';
 import { basePrices, fountainsPrice, robinsonPrice } from './domain/pricing.js?v=20261119d';
-import { HEART, isHeart } from './domain/inscription.js?v=20261120a';
+import { HEART, isHeart, parseInscription } from './domain/inscription.js?v=20261120b';
 
 // The main input, declared explicitly instead of the browser's automatic global for id="input"
 const input = document.getElementById('input');
@@ -203,7 +203,7 @@ function getResult(chars, usdNo, usdYes, bynNo, bynYes, counts) {
       }
     : null;
   renderResult(
-    chars.map((ch) => ch.trim()),
+    chars,
     [
       { label: 'Without pyrotechnics', usd: usdNo + venue, byn: byn(bynNo) },
       { label: 'With pyrotechnics', usd: usdYes + venue, byn: byn(bynYes), accent: true },
@@ -348,13 +348,9 @@ function addFiveBaks() {
   return robinsonPrice(defaultPlace.checked);
 }
 
+// The text is split into characters in domain/inscription.js
 function checkString(str) {
-  let inputStringArray = str
-    .toLowerCase()
-    .split('')
-    .filter((element) => element.trim())
-    .map((element) => ` ${element}`);
-  prepareResult(inputStringArray);
+  prepareResult(parseInscription(str).chars);
 }
 
 function addHeart() {
