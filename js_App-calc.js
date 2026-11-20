@@ -19,6 +19,7 @@ import {
   MAX_MUSIC_LENGTH,
 } from './config.js?v=20261119b';
 import { basePrices, fountainsPrice, robinsonPrice } from './domain/pricing.js?v=20261119d';
+import { HEART, isHeart } from './domain/inscription.js?v=20261120a';
 
 // The main input, declared explicitly instead of the browser's automatic global for id="input"
 const input = document.getElementById('input');
@@ -29,7 +30,6 @@ let defaultPlace = document.getElementById('robinson');
 let defaultPlaceFocus = document.querySelector('.container__controls');
 let doublePyro = document.getElementById('double');
 let heartClick = document.getElementById('heart');
-const heartCharCode = String.fromCharCode(HEART_CHAR_CODE);
 
 // ================ MODE SWITCH: Price | Letters
 const modeSwitch = document.querySelector('.mode-switch');
@@ -274,7 +274,7 @@ function renderResult(chars, prices, rows) {
   });
   details.appendChild(table);
 
-  const letters = chars.filter((ch) => ch !== heartCharCode).length;
+  const letters = chars.filter((ch) => !isHeart(ch)).length;
   const hearts = chars.length - letters;
   const head = lettersEl('div', 'letters-group__head');
   head.append(
@@ -290,7 +290,7 @@ function renderResult(chars, prices, rows) {
   const list = lettersEl('div', 'letters-list result__letters');
   chars.forEach((ch) =>
     list.appendChild(
-      lettersEl('span', 'letters-key ' + (ch === heartCharCode ? 'letters-key--heart' : 'letters-key--found'), ch)
+      lettersEl('span', 'letters-key ' + (isHeart(ch) ? 'letters-key--heart' : 'letters-key--found'), ch)
     )
   );
   const inscription = lettersEl('div', 'result__inscription');
@@ -316,7 +316,7 @@ function prepareResult(array) {
   }).length;
 
   let sumLetters = array.filter(
-    (letters) => !letters.includes(heartCharCode)
+    (letters) => !letters.includes(HEART)
   ).length;
 
   // The formula lives in domain/pricing.js
@@ -358,7 +358,7 @@ function checkString(str) {
 }
 
 function addHeart() {
-  input.value += heartCharCode;
+  input.value += HEART;
   input.focus();
   onInput();
 }
